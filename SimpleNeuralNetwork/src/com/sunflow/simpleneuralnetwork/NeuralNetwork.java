@@ -8,6 +8,14 @@ public class NeuralNetwork {
 		return (float) (1 / (1 + Math.exp(-x)));
 	}
 
+	private float dsigmoid(float x) {
+		return sigmoid(x) * (1 - sigmoid(x));
+	}
+
+	private float dsigmoided(float x) {
+		return x * (1 - x);
+	}
+
 	private int nodes_input;
 	private int nodes_hidden;
 	private int nodes_output;
@@ -17,6 +25,8 @@ public class NeuralNetwork {
 
 	private MatrixF bias_h;
 	private MatrixF bias_o;
+
+	private float learing_rate;
 
 	public NeuralNetwork(int nodes_input, int nodes_hidden, int nodes_output) {
 		this.nodes_input = nodes_input;
@@ -32,6 +42,7 @@ public class NeuralNetwork {
 		this.bias_o = new MatrixF(nodes_output, 1);
 		this.bias_h.randomize();
 		this.bias_o.randomize();
+		this.learing_rate = 0.1F;
 	}
 
 	public float[] feedforward(float[] input) {
@@ -59,21 +70,49 @@ public class NeuralNetwork {
 			Log.err("NeuralNetwork#feedforward: target and nn_output didnt match");
 		}
 
-		MatrixF output = feedforward(MatrixF.fromArray(input));
+		MatrixF input_m = MatrixF.fromArray(input);
+		MatrixF target_m = MatrixF.fromArray(target);
+
+		// Generating the hidden outputs
+		MatrixF hidden = genLayer(weights_ih, input_m, bias_h);
+		// Generating the real outputs
+		MatrixF output = genLayer(weights_ho, hidden, bias_o);
+
+//		MatrixF output = feedforward(MatrixF.fromArray(input));
 
 		// Calculate the output layer error
 		// ERROR = TARGET - OUTPUT
-		MatrixF error_output = MatrixF.substract(MatrixF.fromArray(target), output);
+		MatrixF error_o = MatrixF.substract(target_m, output);
+
+		// Calculate output gradient
+		MatrixF gradient_o = MatrixF.map(output, (x, i, j) -> dsigmoided(x));
+		gradient_o.multiply(error_o);
+		gradient_o.multiply(learing_rate);
+
+		// Calculate hidden -> output delta
+		MatrixF hidden_t = MatrixF.transpose(hidden);
+		MatrixF weight_ho_delta = MatrixF.multiply(gradient_o, hidden_t);
+		weights_ho.add(weight_ho_delta);
 
 		// Calculate the hidden layer error
-		MatrixF w_ho_t = MatrixF.transpose(weights_ho);
-		MatrixF error_hidden = MatrixF.multiply(w_ho_t, error_output);
+		// ERROR = TARGET - OUTPUT
+		MatrixF weight_ho_t = MatrixF.transpose(weights_ho);
+		MatrixF error_h = MatrixF.multiply(weight_ho_t, error_o);
 
+		// Calculate hidden gradient
+		MatrixF gradient_h = MatrixF.map(hidden, (x, i, j) -> dsigmoided(x));
+		gradient_h.multiply(error_h);
+		gradient_h.multiply(learing_rate);
+
+		// Calculate input -> hidden delta
+		MatrixF input_t = MatrixF.transpose(input_m);
+		MatrixF weight_ih_delta = MatrixF.multiply(gradient_h, input_t);
+		weights_ih.add(weight_ih_delta);
 	}
 
 	private MatrixF genLayer(MatrixF weights, MatrixF input, MatrixF bias) {
-		// Generating the layer outputs
-		MatrixF layer = MatrixF.dot(weights, input);
+		// Generating the layer output
+		MatrixF layer = MatrixF.multiply(weights, input);
 		layer.add(bias);
 		// Activation function
 		layer.map((x, i, j) -> sigmoid(x));
