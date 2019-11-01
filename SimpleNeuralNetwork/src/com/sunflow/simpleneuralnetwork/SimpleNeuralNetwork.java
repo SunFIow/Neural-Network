@@ -21,7 +21,7 @@ public class SimpleNeuralNetwork extends Game2D {
 		NeuralNetwork nn = new NeuralNetwork(2, 2, 1);
 		float[] input = { 1, 0 };
 		float[] output = nn.feedforward(input);
-		Log.info(output[0]);
+		Log.info(output);
 	}
 
 	@Override
