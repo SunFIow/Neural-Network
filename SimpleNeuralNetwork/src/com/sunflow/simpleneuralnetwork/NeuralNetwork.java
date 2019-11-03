@@ -5,18 +5,6 @@ import com.sunflow.math3d.MatrixF.Mapper;
 import com.sunflow.util.Log;
 
 public class NeuralNetwork {
-//	private float sigmoid(float x) {
-//		return (float) (1 / (1 + Math.exp(-x)));
-//	}
-//
-//	private float dsigmoid(float x) {
-//		return sigmoid(x) * (1 - sigmoid(x));
-//	}
-//
-//	private float dsigmoided(float x) {
-//		return x * (1 - x);
-//	}
-
 	ActivationFunction sigmoid = new ActivationFunction(
 			(x, i, j) -> (float) (1 / (1 + Math.exp(-x))),
 			(y, i, j) -> y * (1 - y));
@@ -164,6 +152,17 @@ public class NeuralNetwork {
 
 	public NeuralNetwork copy() {
 		return new NeuralNetwork(this);
+	}
+
+	@Override
+	protected NeuralNetwork clone() {
+		try {
+			return (NeuralNetwork) super.clone();
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
+		return null;
+
 	}
 
 	public void mutate(Mapper func) {
