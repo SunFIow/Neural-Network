@@ -1,4 +1,4 @@
-package com.sunflow.examples;
+package com.sunflow.examples.supervised;
 
 import com.sunflow.game.Game2D;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
@@ -12,12 +12,12 @@ public class SimpleNeuralNetwork extends Game2D {
 
 	private NeuralNetwork brain;
 
-	float[][][] training_data;
+	double[][][] training_data;
 
 	@Override
 	protected void setup() {
-		brain = new NeuralNetwork(2, 2, 1);
-		training_data = new float[][][] {
+		brain = new NeuralNetwork(2, 1, 2);
+		training_data = new double[][][] {
 				{ { 0, 0 }, { 1 } },
 				{ { 0, 1 }, { 1 } },
 				{ { 1, 0 }, { 0 } },
@@ -25,7 +25,7 @@ public class SimpleNeuralNetwork extends Game2D {
 		};
 
 		for (int i = 0; i < 5000; i++) {
-			float[][] data = training_data[Utils.random(0, 3)];
+			double[][] data = training_data[Utils.random(0, 3)];
 			brain.train(data[0], data[1]);
 		}
 		Log.info(brain.predict(training_data[0][0]));

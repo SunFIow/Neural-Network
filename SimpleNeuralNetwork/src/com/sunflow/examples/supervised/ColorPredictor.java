@@ -1,4 +1,4 @@
-package com.sunflow.examples;
+package com.sunflow.examples.supervised;
 
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
@@ -23,7 +23,7 @@ public class ColorPredictor extends Game2D implements Serializable {
 
 	private boolean hidePrediction;
 
-	private ArrayList<float[]> training_data = new ArrayList<float[]>();
+	private ArrayList<double[]> training_data = new ArrayList<>();
 
 	@Override
 	protected void setup() {
@@ -47,7 +47,7 @@ public class ColorPredictor extends Game2D implements Serializable {
 		fill(255);
 		text("white", width / 4 + width / 2 - 25, height / 2, 30);
 
-		float[] guess = brain.predict(new float[] { r, g, b });
+		double[] guess = brain.predict(new double[] { r, g, b });
 
 		if (!hidePrediction) {
 			noFill();
@@ -85,16 +85,16 @@ public class ColorPredictor extends Game2D implements Serializable {
 	@Override
 	public void mousePressed(MouseEvent e) {
 		if (e.getX() < width / 2) {
-			training_data.add(new float[] { r, g, b, 0F, 1F });
+			training_data.add(new double[] { r, g, b, 0, 1 });
 //			brain.train(new float[] { r, g, b }, new float[] { 0F, 1F });
 		} else {
-			training_data.add(new float[] { r, g, b, 1F, 0F });
+			training_data.add(new double[] { r, g, b, 1, 0 });
 //			brain.train(new float[] { r, g, b }, new float[] { 1F, 0F });
 		}
 		for (int i = 0; i < Math.min(10, training_data.size()); i++) {
-			float[] d = training_data.get(i);
-			float[] inputs = new float[] { d[0], d[1], d[2] };
-			float[] targets = new float[] { d[3], d[4] };
+			double[] d = training_data.get(i);
+			double[] inputs = new double[] { d[0], d[1], d[2] };
+			double[] targets = new double[] { d[3], d[4] };
 			brain.train(inputs, targets);
 		}
 		pickNew();

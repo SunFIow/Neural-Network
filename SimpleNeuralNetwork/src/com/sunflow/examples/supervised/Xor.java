@@ -1,8 +1,9 @@
-package com.sunflow.examples;
+package com.sunflow.examples.supervised;
 
 import java.awt.Graphics2D;
 
 import com.sunflow.game.Game2D;
+import com.sunflow.simpleneuralnetwork.NN;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.util.Utils;
 
@@ -11,14 +12,14 @@ public class Xor extends Game2D {
 		new Xor();
 	}
 
-	private NeuralNetwork brain;
-	float[][][] training_data;
+	private NN brain;
+	double[][][] training_data;
 
-	private String predict00;
-	private String predict01;
-	private String predict10;
-	private String predict11;
-	private String iterationS;
+	private String predict00 = " ";
+	private String predict01 = " ";
+	private String predict10 = " ";
+	private String predict11 = " ";
+	private String iterationS = " ";
 	private int iteration;
 
 	@Override
@@ -31,25 +32,27 @@ public class Xor extends Game2D {
 	@Override
 	protected void setup() {
 		createCanvas(400, 400);
-		training_data = new float[][][] {
+		antialias = true;
+
+		training_data = new double[][][] {
 				{ { 0, 0 }, { 0 } },
 				{ { 0, 1 }, { 1 } },
 				{ { 1, 0 }, { 1 } },
 				{ { 1, 1 }, { 0 } }
 		};
-		brain = new NeuralNetwork(2, 4, 1);
+		brain = new NeuralNetwork(2, 1, 4);
 		brain.setLearningRate(0.2F);
 	}
 
 	@Override
 	protected void tick(double multiplier) {
 		for (int i = 0; i < 100; i++) {
-			float[][] data = training_data[Utils.random(0, 3)];
+			double[][] data = training_data[Utils.random(0, 3)];
 			brain.train(data[0], data[1]);
 			iteration++;
 		}
 
-		if (frames % (targetFrameRate / 2) == 0) {
+		if (frameCount % (targetFrameRate / 2) == 0) {
 			iterationS = "Iteration :   " + iteration;
 			predict00 = "0 | 0 :   " + brain.predict(training_data[0][0])[0];
 			predict01 = "0 | 1 :   " + brain.predict(training_data[1][0])[0];
@@ -75,8 +78,8 @@ public class Xor extends Game2D {
 			for (int j = 0; j < rows; j++) {
 				float x1 = i / cols;
 				float x2 = j / rows;
-				float[] inputs = { x1, x2 };
-				float guess = brain.predict(inputs)[0];
+				double[] inputs = { x1, x2 };
+				double guess = brain.predict(inputs)[0];
 				fill((int) Math.floor(guess * 255F));
 				rect(i * resolution, j * resolution, resolution, resolution);
 			}

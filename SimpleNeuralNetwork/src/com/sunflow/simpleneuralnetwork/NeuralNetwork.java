@@ -1,43 +1,44 @@
 package com.sunflow.simpleneuralnetwork;
 
-import com.sunflow.math3d.MatrixF;
-import com.sunflow.math3d.MatrixF.Mapper;
+import com.sunflow.math3d.MatrixD;
+import com.sunflow.math3d.MatrixD.Mapper;
 import com.sunflow.util.Log;
+import com.sunflow.util.Utils;
 
-public class NeuralNetwork {
-	ActivationFunction sigmoid = new ActivationFunction(
-			(x, i, j) -> (float) (1 / (1 + Math.exp(-x))),
+public class NeuralNetwork implements NN {
+	public static ActivationFunction sigmoid = new ActivationFunction(
+			(x, i, j) -> (1 / (1 + Math.exp(-x))),
 			(y, i, j) -> y * (1 - y));
 
-	ActivationFunction tanh = new ActivationFunction(
-			(x, i, j) -> (float) Math.tanh(x),
+	public static ActivationFunction tanh = new ActivationFunction(
+			(x, i, j) -> Math.tanh(x),
 			(y, i, j) -> 1 - (y * y));
 
-	private int nodes_input;
+	private int nodes_inputs;
 	private int nodes_hidden;
-	private int nodes_output;
+	private int nodes_outputs;
 
-	private MatrixF weights_ih;
-	private MatrixF weights_ho;
+	private MatrixD weights_ih;
+	private MatrixD weights_ho;
 
-	private MatrixF bias_h;
-	private MatrixF bias_o;
+	private MatrixD bias_h;
+	private MatrixD bias_o;
 
-	private float learning_rate;
+	private double learning_rate;
 	private ActivationFunction activation_function;
 
-	public NeuralNetwork(int nodes_input, int nodes_hidden, int nodes_output) {
-		this.nodes_input = nodes_input;
+	public NeuralNetwork(int nodes_inputs, int nodes_outputs, int nodes_hidden) {
+		this.nodes_inputs = nodes_inputs;
+		this.nodes_outputs = nodes_outputs;
 		this.nodes_hidden = nodes_hidden;
-		this.nodes_output = nodes_output;
 
-		this.weights_ih = new MatrixF(nodes_hidden, nodes_input);
-		this.weights_ho = new MatrixF(nodes_output, nodes_hidden);
+		this.weights_ih = new MatrixD(nodes_hidden, nodes_inputs);
+		this.weights_ho = new MatrixD(nodes_outputs, nodes_hidden);
 		this.weights_ih.randomize();
 		this.weights_ho.randomize();
 
-		this.bias_h = new MatrixF(nodes_hidden, 1);
-		this.bias_o = new MatrixF(nodes_output, 1);
+		this.bias_h = new MatrixD(nodes_hidden, 1);
+		this.bias_o = new MatrixD(nodes_outputs, 1);
 		this.bias_h.randomize();
 		this.bias_o.randomize();
 
@@ -45,150 +46,125 @@ public class NeuralNetwork {
 		this.setActivationFunction(sigmoid);
 	}
 
-	public NeuralNetwork(NeuralNetwork nn) {
-		this.nodes_input = nn.nodes_input;
-		this.nodes_hidden = nn.nodes_hidden;
-		this.nodes_output = nn.nodes_output;
-
-		this.weights_ih = nn.weights_ih.clone();
-		this.weights_ho = nn.weights_ho.clone();
-
-		this.bias_h = nn.bias_h.clone();
-		this.bias_o = nn.bias_o.clone();
-
-		this.setLearningRate(nn.learning_rate);
-		this.setActivationFunction(nn.activation_function);
+	public float[] predict(float[] inputs_array) {
+		return Utils.fromArray(Utils.fromArray(inputs_array));
 	}
 
-	public float[] predict(float[] input_array) {
-		if (input_array.length != nodes_input) {
-			Log.err("NeuralNetwork#feedforward: input and nn_input didnt match");
+	@Override
+	public double[] predict(double[] inputs_array) {
+		if (inputs_array.length != nodes_inputs) {
+			Log.err("NeuralNetwork#predict: inputs and nn_inputs didnt match");
 		}
-		MatrixF output = predict(MatrixF.fromArray(input_array));
-		return output.toArray();
+		MatrixD inputs = MatrixD.fromArray(inputs_array);
+		MatrixD outputs = predict(inputs);
+		return outputs.toArray();
 	}
 
-	public MatrixF predict(MatrixF input) {
+	@Override
+	public MatrixD predict(MatrixD inputs) {
 		// Generating the hidden outputs
-		MatrixF hidden = genLayer(weights_ih, input, bias_h);
+		MatrixD hidden = genLayer(weights_ih, inputs, bias_h);
 		// Generating the real outputs
-		MatrixF output = genLayer(weights_ho, hidden, bias_o);
+		MatrixD outputs = genLayer(weights_ho, hidden, bias_o);
 		// Sending back to the caller!
-		return output;
+		return outputs;
 	}
 
-	public void setLearningRate(float learning_rate) {
+	@Override
+	public void setLearningRate(double learning_rate) {
 		this.learning_rate = learning_rate;
 	}
 
+	@Override
 	public void setActivationFunction(ActivationFunction func) {
 		this.activation_function = func;
 	}
 
-	public void train(float[] input_array, float[] target_array) {
-		if (input_array.length != nodes_input) {
-			Log.err("NeuralNetwork#feedforward: input and nn_input didnt match");
-		}
-		if (target_array.length != nodes_output) {
-			Log.err("NeuralNetwork#feedforward: target and nn_output didnt match");
-		}
+	public float[] train(float[] inputs_array) {
+		return Utils.fromArray(Utils.fromArray(inputs_array));
+	}
 
-		MatrixF inputs = MatrixF.fromArray(input_array);
-		MatrixF targets = MatrixF.fromArray(target_array);
+	@Override
+	public void train(double[] inputs_array, double[] targets_array) {
+		if (inputs_array.length != nodes_inputs) {
+			Log.err("NeuralNetwork#train: input and nn_input didnt match");
+		}
+		if (targets_array.length != nodes_outputs) {
+			Log.err("NeuralNetwork#train: target and nn_output didnt match");
+		}
+		MatrixD inputs = MatrixD.fromArray(inputs_array);
+		MatrixD targets = MatrixD.fromArray(targets_array);
+		train(inputs, targets);
+	}
 
+	@Override
+	public void train(MatrixD inputs, MatrixD targets) {
 		// Generating the hidden outputs
-		MatrixF hidden = genLayer(weights_ih, inputs, bias_h);
+		MatrixD hidden = genLayer(weights_ih, inputs, bias_h);
 		// Generating the real outputs
-		MatrixF outputs = genLayer(weights_ho, hidden, bias_o);
-
-//		MatrixF output = feedforward(MatrixF.fromArray(input));
+		MatrixD outputs = genLayer(weights_ho, hidden, bias_o);
 
 		// Calculate the output layer errors
 		// ERROR = TARGET - OUTPUT
-		MatrixF errors_o = MatrixF.substract(targets, outputs);
-
-		// Calculate output gradients
-		MatrixF gradients_o = MatrixF.map(outputs, activation_function.dfunc);
-		gradients_o.multiply(errors_o);
-		gradients_o.multiply(learning_rate);
-
-		// Calculate hidden -> output deltas
-		MatrixF hidden_t = MatrixF.transpose(hidden);
-		MatrixF weight_ho_delta = MatrixF.dot(gradients_o, hidden_t);
-
-		// Adjust the weight by deltas
-		weights_ho.add(weight_ho_delta);
-		// Adjust the bias by its deltas (which is just the gradients)
-		bias_o.add(gradients_o);
+		MatrixD errors_o = MatrixD.substract(targets, outputs);
+		adjustLayer(errors_o, outputs, hidden, weights_ho, bias_o);
 
 		// Calculate the hidden layer errors
 		// ERROR = TARGET - OUTPUT
-		MatrixF weights_ho_t = MatrixF.transpose(weights_ho);
-		MatrixF errors_h = MatrixF.dot(weights_ho_t, errors_o);
-
-		// Calculate hidden gradients
-		MatrixF gradients_h = MatrixF.map(hidden, activation_function.dfunc);
-		gradients_h.multiply(errors_h);
-		gradients_h.multiply(learning_rate);
-
-		// Calculate input -> hidden deltas
-		MatrixF inputs_t = MatrixF.transpose(inputs);
-		MatrixF weights_ih_delta = MatrixF.dot(gradients_h, inputs_t);
-
-		// Adjust the weight by deltas
-		weights_ih.add(weights_ih_delta);
-		// Adjust the bias by its deltas (which is just the gradients)
-		bias_h.add(gradients_h);
+		MatrixD weights_ho_t = MatrixD.transpose(weights_ho);
+		MatrixD errors_h = MatrixD.dot(weights_ho_t, errors_o);
+		adjustLayer(errors_h, hidden, inputs, weights_ih, bias_h);
 	}
 
-	private MatrixF genLayer(MatrixF weights, MatrixF inputs, MatrixF bias) {
+	private MatrixD genLayer(MatrixD weights, MatrixD inputs, MatrixD bias) {
 		// Generating the layer output
-		MatrixF outputs = MatrixF.dot(weights, inputs);
+		MatrixD outputs = MatrixD.dot(weights, inputs);
 		outputs.add(bias);
 		// Activation function
 		outputs.map(activation_function.func);
 		return outputs;
 	}
 
-	public NeuralNetwork copy() {
-		return new NeuralNetwork(this);
+	private void adjustLayer(MatrixD errors, MatrixD layer, MatrixD layer_p, MatrixD weights, MatrixD bias) {
+		// Calculate gradients
+		MatrixD gradients = MatrixD.map(layer, activation_function.dfunc);
+		gradients.multiply(errors);
+		gradients.multiply(learning_rate);
+
+		// Calculate deltas
+		MatrixD layer_p_t = MatrixD.transpose(layer_p);
+		MatrixD weights_delta = MatrixD.dot(gradients, layer_p_t);
+
+		// Adjust the weights by deltas
+		weights.add(weights_delta);
+		// Adjust the bias by its deltas (which is just the gradients)
+		bias.add(gradients);
 	}
 
 	@Override
-	protected NeuralNetwork clone() {
-		try {
-			return (NeuralNetwork) super.clone();
-		} catch (CloneNotSupportedException e) {
-			e.printStackTrace();
-		}
-		return null;
+	public NeuralNetwork clone() {
+		NeuralNetwork copy = new NeuralNetwork(nodes_inputs, nodes_outputs, nodes_hidden);
+		copy.nodes_inputs = this.nodes_inputs;
+		copy.nodes_outputs = this.nodes_outputs;
+		copy.nodes_hidden = this.nodes_hidden;
+
+		copy.weights_ih = this.weights_ih.clone();
+		copy.weights_ho = this.weights_ho.clone();
+
+		copy.bias_h = this.bias_h.clone();
+		copy.bias_o = this.bias_o.clone();
+
+		copy.setLearningRate(0.1F);
+		copy.setActivationFunction(sigmoid);
+		return copy;
 
 	}
 
+	@Override
 	public void mutate(Mapper func) {
 		weights_ih.map(func);
 		weights_ho.map(func);
 		bias_h.map(func);
 		bias_o.map(func);
-	}
-
-	public static class Data {
-		public float[] inputs;
-		public float[] targets;
-
-		public Data(float[] inputs, float[] targets) {
-			this.inputs = inputs;
-			this.targets = targets;
-		}
-	}
-
-	private static class ActivationFunction {
-		private Mapper func;
-		private Mapper dfunc;
-
-		public ActivationFunction(Mapper func, Mapper dfunc) {
-			this.func = func;
-			this.dfunc = dfunc;
-		}
 	}
 }
