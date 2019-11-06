@@ -4,16 +4,9 @@ import java.util.ArrayList;
 
 import com.sunflow.util.Utils;
 
-public class Population<Type extends Creature<Type>> {
-	public interface Reseter {
-		void reset();
-	}
+public abstract class Population<Type extends Creature<Type>> {
 
-	public interface Getter<Type> {
-		Type get();
-	}
-
-	private int totalPopulation;
+//	private int totalPopulation;
 	// All active birds (not yet collided with pipe)
 	private ArrayList<Type> activeCreatures;
 	// All birds for any given population
@@ -21,30 +14,25 @@ public class Population<Type extends Creature<Type>> {
 
 	private Type bestCreature;
 	private int generation = 1;
-	private Reseter reseter;
-	private Getter<Type> getter;
 
-	public Population(int totalPopulation, Reseter reseter, Getter<Type> getter) {
-		this.totalPopulation = totalPopulation;
-		this.reseter = reseter;
-		this.getter = getter;
+	public Population(int totalPopulation) {
+//		this.totalPopulation = totalPopulation;
 
 		activeCreatures = new ArrayList<>();
 		allCreatures = new ArrayList<>();
 
 		// Create a population
 		for (int i = 0; i < totalPopulation; i++) {
-			Type creature = getter.get();
+			Type creature = getCreature();
 			activeCreatures.add(creature);
 			allCreatures.add(creature);
 		}
 	}
 
-//	protected abstract Type getCreature();
+	protected abstract Type getCreature();
 
 	@SuppressWarnings("unchecked")
 	public void nextGeneration() {
-		reseter.reset();
 		// Normalize the fitness values 0-1
 		normalizeFitness(allCreatures);
 		// Generate a new set of birds
@@ -56,8 +44,7 @@ public class Population<Type extends Creature<Type>> {
 
 	private ArrayList<Type> generate(ArrayList<Type> oldCreatures) {
 		ArrayList<Type> newCreatures = new ArrayList<>();
-		newCreatures.add(bestCreature);
-		for (int i = 1; i < totalPopulation; i++) {
+		for (int i = 0; i < oldCreatures.size(); i++) {
 			// Select a bird based on fitness
 			Type creature = poolSelection(oldCreatures);
 			newCreatures.add(creature);
@@ -68,8 +55,7 @@ public class Population<Type extends Creature<Type>> {
 	private void normalizeFitness(ArrayList<Type> creatures) {
 		// Make score exponentially better?
 		for (int i = 0; i < creatures.size(); i++) {
-			Creature<Type> creature = creatures.get(i);
-			creature.score = Math.pow(creature.score, 2);
+			creatures.get(i).score = Math.pow(creatures.get(i).score, 2);
 		}
 
 		// Add up all the scores
@@ -107,18 +93,9 @@ public class Population<Type extends Creature<Type>> {
 		return creatures.get(index).clone();
 	}
 
-	public void populateOf(Creature<Type> creature) {
-		reseter.reset();
-		ArrayList<Type> newCreatures = new ArrayList<>();
-		for (int i = 1; i < totalPopulation; i++) {
-			// Select a bird based on fitness
-			newCreatures.add(creature.clone());
-		}
-		activeCreatures = newCreatures;
-		// Copy those birds to another array
-		allCreatures = (ArrayList<Type>) activeCreatures.clone();
-		generation = 1;
-	}
+//	public ArrayList<Type> getCreatures() {
+//		return activeCreatures;
+//	}
 
 	public Type getCreature(int i) {
 		return activeCreatures.get(i);
