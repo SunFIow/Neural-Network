@@ -38,4 +38,8 @@ public abstract class Creature<Type> implements Cloneable {
 	public abstract Type clone();
 
 	public abstract void update();
+
+	public NeuralNetwork brain() {
+		return brain;
+	}
 }
