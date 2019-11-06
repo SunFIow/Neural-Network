@@ -1,9 +1,11 @@
 package com.sunflow.simpleneuralnetwork;
 
+import java.io.Serializable;
+
 import com.sunflow.math3d.MatrixD;
 import com.sunflow.math3d.MatrixD.Mapper;
 
-public interface NN extends Cloneable {
+public interface NN extends Cloneable, Serializable {
 	public double[] predict(double[] inputs_array);
 
 	public MatrixD predict(MatrixD inputs);
@@ -18,7 +20,7 @@ public interface NN extends Cloneable {
 
 	public void mutate(Mapper func);
 
-	public static class ActivationFunction {
+	public static class ActivationFunction implements Serializable {
 		public Mapper func;
 		public Mapper dfunc;
 

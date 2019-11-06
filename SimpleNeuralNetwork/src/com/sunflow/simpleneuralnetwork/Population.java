@@ -44,7 +44,7 @@ public abstract class Population<Type extends Creature<Type>> {
 
 	private ArrayList<Type> generate(ArrayList<Type> oldCreatures) {
 		ArrayList<Type> newCreatures = new ArrayList<>();
-		newCreatures.add(bestCreature);
+		newCreatures.add(bestCreature.clone());
 		for (int i = 1; i < totalPopulation; i++) {
 			// Select a bird based on fitness
 			Type creature = poolSelection(oldCreatures);
@@ -91,7 +91,7 @@ public abstract class Population<Type extends Creature<Type>> {
 
 		// Make sure it's a copy!
 		// (this includes mutation)
-		return creatures.get(index).clone();
+		return creatures.get(index).mutate();
 	}
 
 //	public ArrayList<Type> getCreatures() {
@@ -120,5 +120,20 @@ public abstract class Population<Type extends Creature<Type>> {
 
 	public int generation() {
 		return generation;
+	}
+
+	public void populateOf(Type creature) {
+		// Generate a new set of birds
+		ArrayList<Type> newCreatures = new ArrayList<>();
+		newCreatures.add(creature.clone());
+		for (int i = 1; i < totalPopulation; i++) {
+			// Select a bird based on fitness
+			newCreatures.add(creature.mutate());
+		}
+		activeCreatures = newCreatures;
+//		activeCreatures = generate(allCreatures);
+		// Copy those birds to another array
+		allCreatures = (ArrayList<Type>) activeCreatures.clone();
+		generation = 1;
 	}
 }

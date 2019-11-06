@@ -281,6 +281,13 @@ public class FlappyBird2 extends Game2D {
 		public Bird clone() {
 			Bird copy = new Bird();
 			copy.brain = this.brain.clone();
+			return copy;
+		}
+
+		@Override
+		protected Bird mutate() {
+			Bird copy = new Bird();
+			copy.brain = this.brain.clone();
 			copy.brain.mutate(mutate);
 			return copy;
 		}

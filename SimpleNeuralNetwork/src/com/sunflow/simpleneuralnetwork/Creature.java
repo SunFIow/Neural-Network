@@ -10,7 +10,7 @@ public abstract class Creature<Type> implements Cloneable {
 		@Override
 		public double func(double x, int i, int j) {
 			if (Utils.random(1.0D) < 0.01D) {
-				double offset = new Random().nextGaussian() * 0.2D;
+				double offset = new Random().nextGaussian() * 0.25D;
 				double newx = x + offset;
 				return newx;
 			} else {
@@ -33,9 +33,15 @@ public abstract class Creature<Type> implements Cloneable {
 		this.fitness = 0;
 	}
 
+	public NeuralNetwork brain() {
+		return brain;
+	}
+
 	// Create a copy of this bird
 	@Override
 	public abstract Type clone();
+
+	protected abstract Type mutate();
 
 	public abstract void update();
 }
