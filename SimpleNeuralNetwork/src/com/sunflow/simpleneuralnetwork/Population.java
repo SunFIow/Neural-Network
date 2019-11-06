@@ -6,7 +6,7 @@ import com.sunflow.util.Utils;
 
 public abstract class Population<Type extends Creature<Type>> {
 
-//	private int totalPopulation;
+	private int totalPopulation;
 	// All active birds (not yet collided with pipe)
 	private ArrayList<Type> activeCreatures;
 	// All birds for any given population
@@ -16,7 +16,7 @@ public abstract class Population<Type extends Creature<Type>> {
 	private int generation = 1;
 
 	public Population(int totalPopulation) {
-//		this.totalPopulation = totalPopulation;
+		this.totalPopulation = totalPopulation;
 
 		activeCreatures = new ArrayList<>();
 		allCreatures = new ArrayList<>();
@@ -44,7 +44,8 @@ public abstract class Population<Type extends Creature<Type>> {
 
 	private ArrayList<Type> generate(ArrayList<Type> oldCreatures) {
 		ArrayList<Type> newCreatures = new ArrayList<>();
-		for (int i = 0; i < oldCreatures.size(); i++) {
+		newCreatures.add(bestCreature);
+		for (int i = 1; i < totalPopulation; i++) {
 			// Select a bird based on fitness
 			Type creature = poolSelection(oldCreatures);
 			newCreatures.add(creature);
