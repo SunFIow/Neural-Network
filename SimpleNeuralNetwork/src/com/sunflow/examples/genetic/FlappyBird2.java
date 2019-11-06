@@ -2,12 +2,22 @@ package com.sunflow.examples.genetic;
 
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.function.Function;
 
 import com.sunflow.game.Game2D;
 import com.sunflow.math3d.MatrixD.Mapper;
 import com.sunflow.simpleneuralnetwork.Creature;
+import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.Population;
 import com.sunflow.util.Utils;
 
@@ -47,12 +57,13 @@ public class FlappyBird2 extends Game2D {
 
 		pipes = new ArrayList<>();
 
-		population = new Population<Bird>(500) {
-			@Override
-			protected Bird getCreature() {
-				return new Bird();
-			}
-		};
+		population = new Population<Bird>(500, this::resetGame, Bird::new);
+//		{
+//			@Override
+//			protected Bird getCreature() {
+//				return new Bird();
+//			}
+//		};
 
 		// Access the interface elements
 //		speedSlider = select('#speedSlider');
@@ -64,16 +75,24 @@ public class FlappyBird2 extends Game2D {
 
 	}
 
+	Function<?, ?> f = new Function<Object, Object>() {
+		@Override
+		public Object apply(Object t) {
+			resetGame();
+			return t;
+		}
+	};
+
 	// Toggle the state of the simulation
 	private void toggleState() {
 		runBest = !runBest;
-		resetGame();
 		// Go train some more
 		if (!runBest) {
 			population.nextGeneration();
 //		    runBestButton.html('run best');
 			// Show the best bird
 		} else {
+			resetGame();
 //		    runBestButton.html('continue training');
 		}
 	}
@@ -83,20 +102,18 @@ public class FlappyBird2 extends Game2D {
 		counter = 0;
 		score = 0;
 		// Resetting best bird score to 0
-		if (population.bestCreature() != null) {
-			population.bestCreature().score = 0;
-		}
+//		if (population.bestCreature() != null) {
+//			population.bestCreature().score = 0;
+//		}
 		pipes = new ArrayList<>();
 	}
 
 	@Override
 	protected void tick(double multiplier) {
-//		logic();
+		// logic();
 	}
 
 	private void logic() {
-		boolean added = false;
-
 		// Should we speed up cycles per frame
 		int cycles = this.cycles; // speedSlider.value();
 //		speedSpan.html(cycles);
@@ -152,7 +169,6 @@ public class FlappyBird2 extends Game2D {
 
 			// Add a new pipe every so often
 			if (counter % 75 == 0) {
-				added = true;
 				pipes.add(new Pipe());
 			}
 			counter++;
@@ -210,7 +226,7 @@ public class FlappyBird2 extends Game2D {
 			}
 			// If we're out of birds go to the next generation
 			if (population.getActiveSize() == 0) {
-				resetGame();
+//				resetGame();
 				population.nextGeneration();
 			}
 		}
@@ -240,7 +256,62 @@ public class FlappyBird2 extends Game2D {
 			cycles--;
 			if (cycles < 1)
 				cycles = 1;
+		} else if (e.isControlDown()) {
+			if (e.getKeyCode() == KeyEvent.VK_S) {
+				serialize("bestBirdBrain", population.bestCreature().brain());
+			} else if (e.getKeyCode() == KeyEvent.VK_L) {
+//				population.setBestCreature(new Bird((NeuralNetwork) deserialize("bestBirdBrain")));
+				population.populateOf(new Bird((NeuralNetwork) deserialize("bestBirdBrain")));
+			}
 		}
+	}
+
+//	File file = new File("students.txt");
+
+	private static void serialize(String file, Serializable obj) {
+		serialize(new File(file), obj);
+	}
+
+	private static Serializable deserialize(String file) {
+		return deserialize(new File(file));
+	}
+
+	private static void serialize(File file, Serializable obj) {
+		// serialize
+		try {
+			FileOutputStream fos = new FileOutputStream(file);
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+
+			oos.writeObject(obj);
+			oos.close();
+			fos.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static Serializable deserialize(File file) {
+		Serializable obj = null;
+		// deserialize
+		try {
+			FileInputStream fis = new FileInputStream(file);
+			ObjectInputStream ois = new ObjectInputStream(fis);
+
+			try {
+				while (true) {
+					Object o = ois.readObject();
+//					Log.info(o);
+					obj = (Serializable) o;
+				}
+			} catch (EOFException e) {} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+			ois.close();
+			fis.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return obj;
 	}
 
 	private class Bird extends Creature<Bird> {
@@ -276,12 +347,17 @@ public class FlappyBird2 extends Game2D {
 			this.velocity = 0.0F;
 		}
 
+		public Bird(NeuralNetwork brain) {
+			this();
+			this.brain = brain.clone();
+		}
+
 		// Create a copy of this bird
 		@Override
 		public Bird clone() {
-			Bird copy = new Bird();
-			copy.brain = this.brain.clone();
-			copy.brain.mutate(mutate);
+			Bird copy = new Bird(brain);
+//			copy.brain = this.brain().clone();
+			copy.brain().mutate(mutate);
 			return copy;
 		}
 
@@ -322,7 +398,7 @@ public class FlappyBird2 extends Game2D {
 				inputs[4] = Utils.map(this.velocity, -5, 5, 0, 1);
 
 				// Get the outputs from the network
-				double[] action = this.brain.predict(inputs);
+				double[] action = this.brain().predict(inputs);
 				// Decide to jump or not!
 				if (action[1] > action[0]) {
 					this.up();
