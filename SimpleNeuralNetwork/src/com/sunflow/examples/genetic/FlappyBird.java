@@ -1,12 +1,24 @@
 package com.sunflow.examples.genetic;
 
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Random;
 
 import com.sunflow.game.Game2D;
 import com.sunflow.math3d.MatrixD.Mapper;
+import com.sunflow.simpleneuralnetwork.Creature;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
+import com.sunflow.simpleneuralnetwork.Population;
+import com.sunflow.util.Log;
 import com.sunflow.util.Utils;
 
 public class FlappyBird extends Game2D {
@@ -14,15 +26,11 @@ public class FlappyBird extends Game2D {
 		new FlappyBird();
 	}
 
-	int totalPopulation;
-	// All active birds (not yet collided with pipe)
-	ArrayList<Bird> activeBirds;
-	// All birds for any given population
-	ArrayList<Bird> allBirds;
 	// Pipes
-	ArrayList<Pipe> pipes;
+	private ArrayList<Pipe> pipes;
+
 	// A frame counter to determine when to add a pipe
-	int counter;
+	private int counter;
 
 	// Interface elements
 //	int speedSlider;
@@ -31,11 +39,15 @@ public class FlappyBird extends Game2D {
 //	int allTimeHighScoreSpan;
 
 	// All time high score
-	double highScore;
+	private double highScore;
 
 	// Training or just showing the current best
-	boolean runBest;
-	int runBestButton;
+	private boolean runBest;
+	private int runBestButton;
+
+	private Population<Bird> population;
+
+	private int cycles;
 
 	@Override
 	protected void setup() {
@@ -43,10 +55,17 @@ public class FlappyBird extends Game2D {
 		antialias = true;
 		frameRate(60);
 
-		activeBirds = new ArrayList<>();
-		allBirds = new ArrayList<>();
+		cycles = 1;
+
 		pipes = new ArrayList<>();
-		totalPopulation = 500;
+
+//		population = new Population<Bird>(500, this::resetGame, Bird::new);
+		population = new Population<Bird>(500) {
+			@Override
+			protected Bird getCreature() {
+				return new Bird();
+			}
+		};
 
 		// Access the interface elements
 //		speedSlider = select('#speedSlider');
@@ -56,111 +75,42 @@ public class FlappyBird extends Game2D {
 //	 	runBestButton = select('#best');
 //		runBestButton.mousePressed(toggleState); 
 
-		// Create a population
-		for (int i = 0; i < totalPopulation; i++) {
-			Bird bird = new Bird();
-			activeBirds.add(bird);
-			allBirds.add(bird);
-		}
 	}
 
 	// Toggle the state of the simulation
 	private void toggleState() {
 		runBest = !runBest;
-		// Show the best bird
-		if (runBest) {
-			resetGame();
-//	    runBestButton.html('continue training');
-			// Go train some more
+		// Go train some more
+		resetGame();
+		if (!runBest) {
+			population.nextGeneration();
+//		    runBestButton.html('run best');
+			// Show the best bird
 		} else {
-			nextGeneration();
-//	    runBestButton.html('run best');
+//		    runBestButton.html('continue training');
 		}
 	}
 
 	// Start the game over
 	private void resetGame() {
 		counter = 0;
+		score = 0;
 		// Resetting best bird score to 0
-		if (bestBird != null) {
-			bestBird.score = 0;
-		}
+//		if (population.bestCreature() != null) {
+//			population.bestCreature().score = 0;
+//		}
+		cycles = Math.min(cycles, 500);
 		pipes = new ArrayList<>();
 	}
 
-	@SuppressWarnings("unchecked")
-	private void nextGeneration() {
-		resetGame();
-		// Normalize the fitness values 0-1
-		normalizeFitness(allBirds);
-		// Generate a new set of birds
-		activeBirds = generate(allBirds);
-		// Copy those birds to another array
-		allBirds = (ArrayList<Bird>) activeBirds.clone();
-	}
-
-	private ArrayList<Bird> generate(ArrayList<Bird> oldBirds) {
-		ArrayList<Bird> newBirds = new ArrayList<>();
-		for (int i = 0; i < oldBirds.size(); i++) {
-			// Select a bird based on fitness
-			Bird bird = poolSelection(oldBirds);
-			newBirds.add(bird);
-		}
-		return newBirds;
-	}
-
-	private void normalizeFitness(ArrayList<Bird> birds) {
-		// Make score exponentially better?
-		for (int i = 0; i < birds.size(); i++) {
-			birds.get(i).score = Math.pow(birds.get(i).score, 2);
-		}
-
-		// Add up all the scores
-		double sum = 0;
-		for (int i = 0; i < birds.size(); i++) {
-			sum += birds.get(i).score;
-		}
-		// Divide by the sum
-		for (int i = 0; i < birds.size(); i++) {
-			birds.get(i).fitness = birds.get(i).score / sum;
-		}
-	}
-
-	private Bird poolSelection(ArrayList<Bird> birds) {
-		// Start at 0
-		int index = 0;
-
-		// Pick a random number between 0 and 1
-		double r = Utils.random(1.0D);
-
-		// Keep subtracting probabilities until you get less than zero
-		// Higher probabilities will be more likely to be fixed since they will
-		// subtract a larger number towards zero
-		while (r > 0.0D) {
-			r -= birds.get(index).fitness;
-			// And move on to the next
-			index += 1;
-		}
-
-		// Go back one
-		index -= 1;
-
-		// Make sure it's a copy!
-		// (this includes mutation)
-		return birds.get(index).copy();
-	}
-
 	@Override
-	protected void tick(double multiplier) {}
+	protected void tick(double multiplier) {
+		// logic();
+	}
 
-	Bird bestBird;
-
-	@Override
-	protected void render(Graphics2D g) {
-		background(0);
-
+	private void logic() {
 		// Should we speed up cycles per frame
-		int cycles = 1; // speedSlider.value();
+		int cycles = this.cycles; // speedSlider.value();
 //		speedSpan.html(cycles);
 
 		// How many times to advance the game
@@ -168,28 +118,32 @@ public class FlappyBird extends Game2D {
 			for (int i = pipes.size() - 1; i >= 0; i--) {
 				pipes.get(i).update();
 				if (pipes.get(i).offscreen()) {
+					score++;
+					if (score > bestScore) {
+						bestScore = score;
+					}
 					pipes.remove(i);
 				}
 			}
 			// Are we just running the best bird
 			if (runBest) {
-				bestBird.think(pipes);
-				bestBird.update();
+				population.bestCreature().think(pipes);
+				population.bestCreature().update();
 				for (int i = 0; i < pipes.size(); i++) {
 					// Start over, bird hit pipe
-					if (pipes.get(i).hits(bestBird)) {
+					if (pipes.get(i).hits(population.bestCreature())) {
 						resetGame();
 						break;
 					}
 				}
 
-				if (bestBird.bottomTop()) {
+				if (population.bestCreature().bottomTop()) {
 					resetGame();
 				}
 				// Or are we running all the active birds
 			} else {
-				for (int i = activeBirds.size() - 1; i >= 0; i--) {
-					Bird bird = activeBirds.get(i);
+				for (int i = population.getActiveSize() - 1; i >= 0; i--) {
+					Bird bird = population.getCreature(i);
 					// Bird uses its brain!
 					bird.think(pipes);
 					bird.update();
@@ -199,15 +153,16 @@ public class FlappyBird extends Game2D {
 						// It's hit a pipe
 						if (pipes.get(j).hits(bird)) {
 							// Remove this bird
-							activeBirds.remove(i);
+							population.removeCreatures(i);
 							break;
 						}
 					}
 
 					if (bird.bottomTop()) {
-						activeBirds.remove(i);
+						population.removeCreatures(i);
 					}
-
+					if (population.getActiveSize() == 0)
+						return;
 				}
 			}
 
@@ -216,32 +171,34 @@ public class FlappyBird extends Game2D {
 				pipes.add(new Pipe());
 			}
 			counter++;
-		}
 
-		// What is highest score of the current population
-		double tempHighScore = 0;
-		// If we're training
-		if (!runBest) {
-			// Which is the best bird?
-			Bird tempBestBird = null;
-			for (int i = 0; i < activeBirds.size(); i++) {
-				double s = activeBirds.get(i).score;
-				if (s > tempHighScore) {
-					tempHighScore = s;
-					tempBestBird = activeBirds.get(i);
+			// What is highest score of the current population
+			double tempHighScore = 0;
+			// If we're training
+			if (!runBest) {
+				// Which is the best bird?
+				Bird tempBestBird = null;
+				for (int i = 0; i < population.getActiveSize(); i++) {
+					Bird bird = population.getCreature(i);
+					double s = bird.score;
+					if (s > tempHighScore) {
+						tempHighScore = s;
+						tempBestBird = bird;
+					}
 				}
-			}
 
-			// Is it the all time high scorer?
-			if (tempHighScore > highScore) {
-				highScore = tempHighScore;
-				bestBird = tempBestBird;
-			}
-		} else {
-			// Just one bird, the best one so far
-			tempHighScore = bestBird.score;
-			if (tempHighScore > highScore) {
-				highScore = tempHighScore;
+				// Is it the all time high scorer?
+				if (tempHighScore > highScore) {
+//					Log.info("new BestBird");
+					highScore = tempHighScore;
+					population.setBestCreature(tempBestBird);
+				}
+			} else {
+				// Just one bird, the best one so far
+				tempHighScore = population.bestCreature().score;
+				if (tempHighScore > highScore) {
+					highScore = tempHighScore;
+				}
 			}
 		}
 
@@ -249,31 +206,123 @@ public class FlappyBird extends Game2D {
 //		highScoreSpan.html(tempHighScore);
 //		allTimeHighScoreSpan.html(highScore);
 
+	}
+
+	private void draw() {
+		background(0);
+
+		strokeWeight(5);
 		// Draw everything!
 		for (int i = 0; i < pipes.size(); i++) {
 			pipes.get(i).show();
 		}
+		strokeWeight(1);
 
 		if (runBest) {
-			bestBird.show();
+			population.bestCreature().show();
 		} else {
-			for (int i = 0; i < activeBirds.size(); i++) {
-				activeBirds.get(i).show();
+			for (int i = 0; i < population.getActiveSize(); i++) {
+				population.getCreature(i).show();
 			}
 			// If we're out of birds go to the next generation
-			if (activeBirds.size() == 0) {
-				nextGeneration();
+			if (population.getActiveSize() == 0) {
+				resetGame();
+				population.nextGeneration();
 			}
 		}
 	}
 
-	private Random rndm = new Random();
+	private int score = 0;
+	private int bestScore = 0;
 
-	private class Bird implements Cloneable {
+	@Override
+	protected void render(Graphics2D g) {
+		logic();
+		draw();
+
+		fill(255, 0, 0);
+		stroke(50, 0, 0);
+		strokeWeight(2);
+		text("Generation: " + population.generation(), width - 200, 25, 20);
+		text("Cycles: " + cycles, width - 200, 45, 20);
+		text("Score: " + score, width - 200, 65, 20);
+		text("HighScore: " + bestScore, width - 200, 85, 20);
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		if (e.getKeyCode() == KeyEvent.VK_PLUS) {
+			cycles++;
+		} else if (e.getKeyCode() == KeyEvent.VK_MINUS) {
+			cycles--;
+			if (cycles < 1)
+				cycles = 1;
+		} else if (e.isControlDown()) {
+			if (e.getKeyCode() == KeyEvent.VK_S) {
+				serialize("bestBirdBrain", population.bestCreature().brain());
+				Log.info("serialized");
+			} else if (e.getKeyCode() == KeyEvent.VK_L) {
+//				population.setBestCreature(new Bird((NeuralNetwork) deserialize("bestBirdBrain")));
+				resetGame();
+				population.populateOf(new Bird((NeuralNetwork) deserialize("bestBirdBrain")));
+				Log.info("deserialized");
+			}
+		}
+	}
+
+//	File file = new File("students.txt");
+
+	private static void serialize(String file, Serializable obj) {
+		serialize(new File(file), obj);
+	}
+
+	private static Serializable deserialize(String file) {
+		return deserialize(new File(file));
+	}
+
+	private static void serialize(File file, Serializable obj) {
+		// serialize
+		try {
+			FileOutputStream fos = new FileOutputStream(file);
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+
+			oos.writeObject(obj);
+			oos.close();
+			fos.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static Serializable deserialize(File file) {
+		Serializable obj = null;
+		// deserialize
+		try {
+			FileInputStream fis = new FileInputStream(file);
+			ObjectInputStream ois = new ObjectInputStream(fis);
+
+			try {
+				while (true) {
+					Object o = ois.readObject();
+//					Log.info(o);
+					obj = (Serializable) o;
+				}
+			} catch (EOFException e) {} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+			ois.close();
+			fis.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return obj;
+	}
+
+	private class Bird extends Creature<Bird> {
 		private Mapper mutate = new Mapper() {
 			@Override
 			public double func(double x, int i, int j) {
-				if (rndm.nextDouble() < 0.01D) {
+				if (Utils.random(1.0D) < 0.01D) {
 					double offset = new Random().nextGaussian() * 0.2D;
 					double newx = x + offset;
 					return newx;
@@ -282,17 +331,15 @@ public class FlappyBird extends Game2D {
 				}
 			}
 		};
-		public double score;
 		public float x;
 		public float y;
 		public float r;
 		private float gravity;
 		private float lift;
 		private float velocity;
-		private NeuralNetwork brain;
-		private double fitness;
 
 		public Bird() {
+			super(5, 2, 8);
 			// position and size of bird
 			this.x = 64F;
 			this.y = height / 2F;
@@ -302,33 +349,24 @@ public class FlappyBird extends Game2D {
 			this.gravity = 0.8F;
 			this.lift = -12.0F;
 			this.velocity = 0.0F;
-
-			// Is this a copy of another Bird or a new one?
-			// The Neural Network is the bird's "brain"
-			this.brain = new NeuralNetwork(5, 2, 8);
-
-			// Score is how many frames it's been alive
-			this.score = 0;
-			// Fitness is normalized version of score
-			this.fitness = 0;
 		}
 
-		public Bird copy() {
-			Bird copy = new Bird();
-			copy.brain = this.brain.clone();
-			copy.brain.mutate(mutate);
-			return copy;
+		public Bird(NeuralNetwork brain) {
+			this();
+			this.brain = brain.clone();
 		}
 
 		// Create a copy of this bird
 		@Override
+		public Bird mutate() {
+			Bird copy = clone();
+			copy.brain().mutate(mutate);
+			return copy;
+		}
+
+		@Override
 		public Bird clone() {
-			try {
-				return (Bird) super.clone();
-			} catch (CloneNotSupportedException e) {
-				e.printStackTrace();
-			}
-			return bestBird;
+			return new Bird(brain);
 		}
 
 		// Display the bird
@@ -365,10 +403,10 @@ public class FlappyBird extends Game2D {
 				// bird's y position
 				inputs[3] = Utils.map(this.y, 0, height, 0, 1);
 				// bird's y velocity
-				inputs[4] = Utils.map(this.velocity, -5, 5, 0, 1);
+				inputs[4] = Utils.map(this.velocity, -30, 30, 0, 1);
 
 				// Get the outputs from the network
-				double[] action = this.brain.predict(inputs);
+				double[] action = this.brain().predict(inputs);
 				// Decide to jump or not!
 				if (action[1] > action[0]) {
 					this.up();
@@ -385,12 +423,11 @@ public class FlappyBird extends Game2D {
 			return (this.y > height || this.y < 0.0F);
 		}
 
+		@Override
 		public void update() {
 			this.velocity += this.gravity;
 			this.velocity = Utils.clamp(-30F, this.velocity, 30F);
-			// this.velocity *= 0.9;
 			this.y += this.velocity;
-//			this.velocity = 0;
 
 			// Every frame it is alive increases the score
 			this.score++;
