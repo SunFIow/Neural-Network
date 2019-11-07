@@ -18,6 +18,7 @@ public abstract class Creature<Type> implements Cloneable {
 			}
 		}
 	};
+
 	public double score;
 	protected NeuralNetwork brain;
 	public double fitness;
@@ -28,13 +29,22 @@ public abstract class Creature<Type> implements Cloneable {
 		this.brain = new NeuralNetwork(nodes_inputs, nodes_outputs, nodes_hidden);
 
 		// Score is how many frames it's been alive
-		this.score = 0;
+		this.score = -1;
 		// Fitness is normalized version of score
 		this.fitness = 0;
 	}
 
 	public NeuralNetwork brain() {
 		return brain;
+	}
+
+	public double score() {
+		calcScore();
+		return score;
+	}
+
+	public void invalid() {
+		score = -1;
 	}
 
 	// Create a copy of this bird
@@ -44,4 +54,6 @@ public abstract class Creature<Type> implements Cloneable {
 	protected abstract Type mutate();
 
 	public abstract void update();
+
+	protected abstract void calcScore();
 }

@@ -36,6 +36,8 @@ public abstract class Population<Type extends Creature<Type>> {
 	@SuppressWarnings("unchecked")
 	public void nextGeneration() {
 		// Normalize the fitness values 0-1
+		calcScores(allCreatures);
+		// Normalize the fitness values 0-1
 		normalizeFitness(allCreatures);
 		// Generate a new set of birds
 		activeCreatures = generate(allCreatures);
@@ -53,6 +55,12 @@ public abstract class Population<Type extends Creature<Type>> {
 			newCreatures.add(creature);
 		}
 		return newCreatures;
+	}
+
+	private void calcScores(ArrayList<Type> creatures) {
+		for (int i = 0; i < creatures.size(); i++) {
+			creatures.get(i).calcScore();
+		}
 	}
 
 	private void normalizeFitness(ArrayList<Type> creatures) {
@@ -108,6 +116,10 @@ public abstract class Population<Type extends Creature<Type>> {
 		activeCreatures.remove(i);
 	}
 
+	public void removeCreatures(Creature<Type> creature) {
+		activeCreatures.remove(creature);
+	}
+
 	public int getActiveSize() {
 		return activeCreatures.size();
 	}
@@ -124,6 +136,7 @@ public abstract class Population<Type extends Creature<Type>> {
 		return generation;
 	}
 
+	@SuppressWarnings("unchecked")
 	public void populateOf(Type creature) {
 		// Generate a new set of birds
 		ArrayList<Type> newCreatures = new ArrayList<>();
