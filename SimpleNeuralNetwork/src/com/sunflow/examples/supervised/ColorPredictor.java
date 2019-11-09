@@ -6,8 +6,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 import com.sunflow.game.Game2D;
-import com.sunflow.game.PConstants;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
+import com.sunflow.util.Constants;
 import com.sunflow.util.Utils;
 
 public class ColorPredictor extends Game2D implements Serializable {
@@ -41,7 +41,7 @@ public class ColorPredictor extends Game2D implements Serializable {
 		background(r * 255, g * 255, b * 255);
 //		background(255, 0, 0);
 
-		textAlign(PConstants.CENTER, PConstants.CENTER);
+		textAlign(Constants.CENTER, Constants.CENTER);
 
 		noStroke();
 		fill(0);

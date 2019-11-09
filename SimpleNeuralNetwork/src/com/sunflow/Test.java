@@ -3,7 +3,7 @@ package com.sunflow;
 import java.awt.Graphics2D;
 
 import com.sunflow.game.Game2D;
-import com.sunflow.game.PConstants;
+import com.sunflow.util.Constants;
 
 public class Test extends Game2D {
 	public static void main(String[] args) {
@@ -40,7 +40,7 @@ public class Test extends Game2D {
 //		textFont(font);
 
 		textO("Test", width / 2F - 100, height / 2F);
-		textAlign(PConstants.CENTER, PConstants.CENTER);
+		textAlign(Constants.CENTER, Constants.CENTER);
 		text("Fgg", width / 2F + 100, height / 2F);
 
 		stroke(100, 150);
