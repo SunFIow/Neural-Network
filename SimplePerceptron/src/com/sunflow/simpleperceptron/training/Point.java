@@ -1,7 +1,5 @@
 package com.sunflow.simpleperceptron.training;
 
-import java.awt.Color;
-
 import com.sunflow.game.GameBase;
 import com.sunflow.util.Utils;
 
@@ -17,7 +15,7 @@ public class Point {
 	public int label;
 
 	public Point() {
-		this(Utils.random(-1, 1), Utils.random(-1, 1));
+		this(Utils.random(-1F, 1F), Utils.random(-1F, 1F));
 	}
 
 	public Point(float x, float y) {
@@ -40,11 +38,11 @@ public class Point {
 
 	public void show(GameBase game) {
 		if (label == 1) {
-			game.fill(Color.white);
+			game.fill(255);
 		} else {
-			game.fill(Color.black);
+			game.fill(0);
 		}
-		game.stroke(Color.black);
+		game.stroke(0);
 		game.strokeWeight(2);
 
 		game.ellipse(pX(), pY(), 20, 20);

@@ -1,12 +1,12 @@
 package com.sunflow.examples.supervised;
 
-import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.io.Serializable;
 import java.util.ArrayList;
 
 import com.sunflow.game.Game2D;
+import com.sunflow.game.PConstants;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.util.Utils;
 
@@ -28,24 +28,30 @@ public class ColorPredictor extends Game2D implements Serializable {
 	@Override
 	protected void setup() {
 		createCanvas(800, 400);
-		antialias = true;
+		smooth();
 
 		pickNew();
 
-		brain = new NeuralNetwork(3, 4, 2);
+		brain = new NeuralNetwork(3, 2, 4);
 		brain.setLearningRate(0.3F);
 	}
 
 	@Override
-	protected void render(Graphics2D g_) {
-		background(r, g, b);
+	protected void draw() {
+		background(r * 255, g * 255, b * 255);
+//		background(255, 0, 0);
+
+		textAlign(PConstants.CENTER, PConstants.CENTER);
 
 		noStroke();
 		fill(0);
-		text("black", width / 4 - 40, height / 2, 30);
+		textSize(50);
+		text("black", width / 4f, height / 2f);
 
 		fill(255);
-		text("white", width / 4 + width / 2 - 25, height / 2, 30);
+		text("white", width / 4f + width / 2f, height / 2f);
+
+		stroke(0);
 
 		double[] guess = brain.predict(new double[] { r, g, b });
 
@@ -58,16 +64,19 @@ public class ColorPredictor extends Game2D implements Serializable {
 			} else {
 				rect(width / 2 + 10, 0, width / 2 - 10, height);
 			}
-
 			noStroke();
 			if (guess[0] < guess[1]) {
 				fill(0);
-				text(String.valueOf(guess[1]), width / 4 - 40, height / 2 + 60, 30);
-				text(String.valueOf(guess[0]), width / 4 - 40, height / 2 + 80, 18);
+				textSize(30);
+				text(String.format("%f", guess[1]), width / 4f, height / 2f + 60);
+				textSize(18);
+				text(String.format("%f", guess[0]), width / 4f, height / 2f + 90);
 			} else {
 				fill(255);
-				text(String.valueOf(guess[0]), width / 4 + width / 2 - 25, height / 2 + 60, 30);
-				text(String.valueOf(guess[1]), width / 4 + width / 2 - 25, height / 2 + 80, 18);
+				textSize(30);
+				text(String.format("%f", guess[0]), width / 4f + width / 2f, height / 2f + 60);
+				textSize(18);
+				text(String.format("%f", guess[1]), width / 4f + width / 2f, height / 2f + 90);
 			}
 		}
 		fill(0);

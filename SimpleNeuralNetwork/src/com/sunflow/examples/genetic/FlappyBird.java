@@ -1,6 +1,5 @@
 package com.sunflow.examples.genetic;
 
-import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
@@ -15,6 +14,8 @@ public class FlappyBird extends Game2D {
 	public static void main(String[] args) {
 		new FlappyBird();
 	}
+
+	private String bestBirdFile = "bestBirdBrain";
 
 	// Pipes
 	private ArrayList<Pipe> pipes;
@@ -44,7 +45,7 @@ public class FlappyBird extends Game2D {
 	@Override
 	protected void setup() {
 		createCanvas(600, 400);
-		antialias = true;
+		smooth();
 		frameRate(60);
 
 		cycles = 1;
@@ -205,8 +206,10 @@ public class FlappyBird extends Game2D {
 
 	}
 
-	private void draw() {
-		background(0);
+	@Override
+	protected void draw() {
+		logic();
+		background(10);
 
 		strokeWeight(5);
 		// Draw everything!
@@ -227,21 +230,16 @@ public class FlappyBird extends Game2D {
 				population.nextGeneration();
 			}
 		}
-	}
-
-	@Override
-	protected void render(Graphics2D g) {
-		logic();
-		draw();
 
 		fill(255, 0, 0);
 		stroke(50, 0, 0);
 		strokeWeight(2);
-		text("Generation: " + population.generation(), width - 200, 25, 20);
-		text("Cycles: " + cycles, width - 200, 45, 20);
-		text("Alive: " + population.getActiveSize(), width - 200, 65, 20);
-		text("Score: " + score, width - 200, 85, 20);
-		text("HighScore: " + bestScore, width - 200, 105, 20);
+		textSize(20);
+		textO("Generation: " + population.generation(), width - 180, 25);
+		textO("Cycles: " + cycles, width - 180, 45);
+		textO("Alive: " + population.getActiveSize(), width - 180, 65);
+		textO("Score: " + score, width - 180, 85);
+		textO("HighScore: " + bestScore, width - 180, 105);
 	}
 
 	@Override
@@ -254,12 +252,12 @@ public class FlappyBird extends Game2D {
 				cycles = 1;
 		} else if (e.isControlDown()) {
 			if (e.getKeyCode() == KeyEvent.VK_S) {
-				serialize("bestBirdBrain", population.bestCreature().brain());
+				serialize(bestBirdFile, population.bestCreature().brain());
 				Log.info("serialized");
 			} else if (e.getKeyCode() == KeyEvent.VK_L) {
 //				population.setBestCreature(new Bird((NeuralNetwork) deserialize("bestBirdBrain")));
 				resetGame();
-				population.populateOf(new Bird((NeuralNetwork) deserialize("bestBirdBrain")));
+				population.populateOf(new Bird((NeuralNetwork) deserialize(bestBirdFile)));
 				Log.info("deserialized");
 			}
 		}

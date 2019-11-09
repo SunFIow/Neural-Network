@@ -15,12 +15,12 @@ import com.sunflow.simpleneuralnetwork.Population;
 import com.sunflow.util.Log;
 import com.sunflow.util.Utils;
 
-public class SmartRockets extends Game2D {
+public class EvolutionarySteeringBehaviors extends Game2D {
 	public static void main(String[] args) {
-		new SmartRockets();
+		new EvolutionarySteeringBehaviors();
 	}
 
-	private String bestRocketFile = "bestRocketBrain";
+	private String bestRocketFile = "rec/bestVehicleBrain";
 
 	public float goalR;
 	private Point2D.Float goal;
@@ -44,7 +44,7 @@ public class SmartRockets extends Game2D {
 	@Override
 	protected void setup() {
 		createCanvas(1280, 800);
-//		smooth();
+		smooth();
 		frameRate(60);
 
 		lifespan = 200;
@@ -177,7 +177,7 @@ public class SmartRockets extends Game2D {
 		textO("Generation: " + population.generation(), width - 200, 25);
 		textO("Cycles: " + cycles, width - 200, 45);
 		textO("Alive: " + population.getActiveSize(), width - 200, 65);
-		textO("LifeSpawn: " + lifespan, width - 200, 85);
+//		textO("LifeSpawn: " + lifespan, width - 200, 85);
 	}
 
 	@Override

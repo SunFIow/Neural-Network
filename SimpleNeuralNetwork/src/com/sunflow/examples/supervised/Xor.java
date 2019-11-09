@@ -32,7 +32,7 @@ public class Xor extends Game2D {
 	@Override
 	protected void setup() {
 		createCanvas(400, 400);
-		antialias = true;
+		smooth();
 
 		training_data = new double[][][] {
 				{ { 0, 0 }, { 0 } },
@@ -66,7 +66,8 @@ public class Xor extends Game2D {
 		strokeWeight(10);
 		stroke(0, 255, 0);
 		fill(255, 0, 255);
-		text("Test", 100, 100, 40);
+		textSize(40);
+		text("Test", 100, 100);
 
 		int resolution = 10;
 		float cols = width / resolution;
@@ -88,10 +89,11 @@ public class Xor extends Game2D {
 		fill(255);
 		stroke(0, 0, 0, 150);
 		strokeWeight(10);
-		text(iterationS, width / 2 - 75, height / 2 - 50, 16);
-		text(predict00, width / 2 - 75, height / 2 - 30, 16);
-		text(predict01, width / 2 - 75, height / 2 - 10, 16);
-		text(predict10, width / 2 - 75, height / 2 + 10, 16);
-		text(predict11, width / 2 - 75, height / 2 + 30, 16);
+		textSize(16);
+		text(iterationS, width / 2 - 75, height / 2 - 50);
+		text(predict00, width / 2 - 75, height / 2 - 30);
+		text(predict01, width / 2 - 75, height / 2 - 10);
+		text(predict10, width / 2 - 75, height / 2 + 10);
+		text(predict11, width / 2 - 75, height / 2 + 30);
 	}
 }

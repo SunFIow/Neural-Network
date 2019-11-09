@@ -1,6 +1,5 @@
 package com.sunflow.simpleperceptron;
 
-import java.awt.Color;
 import java.awt.Graphics2D;
 
 import com.sunflow.game.Game2D;
@@ -21,8 +20,8 @@ public class SimplePerceptron extends Game2D {
 	protected void setup() {
 		frameRate(30);
 		createCanvas(500, 500);
-		background(Color.white);
-		this.antialias = true;
+		background(255);
+		smooth();
 
 		points = new Point[100];
 		brain = new Perceptron(3);
@@ -57,9 +56,9 @@ public class SimplePerceptron extends Game2D {
 
 			int guess = brain.guess(inputs);
 			if (guess == target) {
-				fill(Color.green);
+				fill(0, 255, 0);
 			} else {
-				fill(Color.red);
+				fill(255, 0, 0);
 			}
 			noStroke();
 
@@ -67,12 +66,12 @@ public class SimplePerceptron extends Game2D {
 		}
 
 		strokeWeight(3);
-		stroke(Color.blue);
+		stroke(0, 0, 255);
 		Point p1 = new Point(-1, Point.f(-1));
 		Point p2 = new Point(1, Point.f(1));
 		line(p1.pX(), p1.pY(), p2.pX(), p2.pY());
 
-		stroke(Color.magenta);
+		stroke(255, 0, 200);
 		Point bp1 = new Point(-1, brain.guessY(-1));
 		Point bp2 = new Point(1, brain.guessY(1));
 		line(bp1.pX(), bp1.pY(), bp2.pX(), bp2.pY());
