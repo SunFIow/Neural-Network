@@ -29,11 +29,11 @@ public class Point {
 	}
 
 	public float pX() {
-		return Utils.map(this.x, -1, 1, 0, GameBase.width);
+		return Utils.map(this.x, -1, 1, 0, GameBase.get().width);
 	}
 
 	public float pY() {
-		return Utils.map(this.y, -1, 1, GameBase.height, 0);
+		return Utils.map(this.y, -1, 1, GameBase.get().height, 0);
 	}
 
 	public void show(GameBase game) {

@@ -86,7 +86,7 @@ public class SmartRockets extends Game2D {
 		for (int n = 0; n < cycles; n++) {
 			// Are we just running the best Rocket
 			for (int i = population.getActiveSize() - 1; i >= 0; i--) {
-				Rocket rocket = population.getCreature(i);
+				Rocket rocket = population.get(i);
 				// Rocket uses its brain!
 				rocket.think(walls);
 				rocket.update();
@@ -97,17 +97,17 @@ public class SmartRockets extends Game2D {
 					if (walls.get(j).hits(rocket)) {
 						// Remove this Rocket
 						rocket.hitWall();
-						population.removeCreatures(rocket);
+						population.remove(rocket);
 						break;
 					}
 				}
 				if (rocket.offScreen()) {
 					rocket.hitWall();
-					population.removeCreatures(rocket);
+					population.remove(rocket);
 				}
 				if (rocket.hits(goal, goalR)) {
 					rocket.finished();
-					population.removeCreatures(rocket);
+					population.remove(rocket);
 				}
 			}
 
@@ -116,7 +116,7 @@ public class SmartRockets extends Game2D {
 			// Which is the best Rocket?
 			Rocket tempBestRocket = null;
 			for (int i = 0; i < population.getActiveSize(); i++) {
-				Rocket rocket = population.getCreature(i);
+				Rocket rocket = population.get(i);
 				double s = rocket.score();
 				if (s > tempHighScore) {
 					tempHighScore = s;
@@ -153,14 +153,14 @@ public class SmartRockets extends Game2D {
 		ellipse(goal.x, goal.y, goalR, goalR);
 
 		for (int i = 0; i < population.getActiveSize(); i++) {
-			population.getCreature(i).show();
+			population.get(i).show();
 		}
 
 		if (lifespan == 0) {
 			for (int i = population.getActiveSize() - 1; i >= 0; i--) {
 //				Rocket rocket = population.getCreature(i);
 //				rocket.calcScore();
-				population.removeCreatures(i);
+				population.remove(i);
 			}
 		}
 
@@ -182,21 +182,36 @@ public class SmartRockets extends Game2D {
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		if (e.getKeyCode() == KeyEvent.VK_PLUS) {
-			cycles++;
-		} else if (e.getKeyCode() == KeyEvent.VK_MINUS) {
-			cycles--;
-			if (cycles < 1)
-				cycles = 1;
-		} else if (e.isControlDown()) {
-			if (e.getKeyCode() == KeyEvent.VK_S) {
-				serialize("bestRocketBrain", population.bestCreature().brain());
-				Log.info("serialized");
-			} else if (e.getKeyCode() == KeyEvent.VK_L) {
-//				population.setBestCreature(new Rocket((NeuralNetwork) deserialize("bestRocketBrain")));
-				resetGame();
-				population.populateOf(new Rocket((NeuralNetwork) deserialize("bestRocketBrain")));
-				Log.info("deserialized");
+		if (!e.isControlDown()) {
+			switch (e.getKeyCode()) {
+				case KeyEvent.VK_PLUS:
+					cycles++;
+					break;
+				case KeyEvent.VK_MINUS:
+					cycles--;
+					if (cycles < 1) cycles = 1;
+					break;
+				case KeyEvent.VK_A:
+					population.addCreature();
+					break;
+			}
+		} else {
+			switch (e.getKeyCode()) {
+				case KeyEvent.VK_PLUS:
+					cycles += 10;
+					break;
+				case KeyEvent.VK_MINUS:
+					cycles -= 10;
+					if (cycles < 1) cycles = 1;
+					break;
+				case KeyEvent.VK_S:
+					serialize(bestRocketFile, population.bestCreature().brain());
+					Log.info("serialized");
+					break;
+				case KeyEvent.VK_L:
+					population.populateOf(new Rocket((NeuralNetwork) deserialize(bestRocketFile)));
+					Log.info("deserialized");
+					break;
 			}
 		}
 	}
@@ -283,12 +298,13 @@ public class SmartRockets extends Game2D {
 		}
 
 		@Override
-		public void calcScore() {
+		public double calcScore() {
 			double dist = Utils.dist(x, y, goal.x, goal.y);
-			score = 1.0D / Math.pow(dist, 4);
+			double score = 1.0D / Math.pow(dist, 4);
 			score *= timeAlive / 150D;
 			if (finished) score *= 10;
 			if (hitWall) score /= 4;
+			return score;
 //			if (hits(goal, goalR)) score *= 2;
 		}
 
@@ -371,8 +387,8 @@ public class SmartRockets extends Game2D {
 			this(
 					Utils.random(0, width),
 					Utils.random(0, height),
-					Utils.random(width / 8, width - width / 8),
-					Utils.random(height / 32, height / 16));
+					Utils.random(width / 8F, width - width / 8F),
+					Utils.random(height / 32F, height / 16F));
 
 		}
 

@@ -52,7 +52,7 @@ public class Xor extends Game2D {
 			iteration++;
 		}
 
-		if (frameCount % (targetFrameRate / 2) == 0) {
+		if (frameCount % (frameRate / 2) == 0) {
 			iterationS = "Iteration :   " + iteration;
 			predict00 = "0 | 0 :   " + brain.predict(training_data[0][0])[0];
 			predict01 = "0 | 1 :   " + brain.predict(training_data[1][0])[0];

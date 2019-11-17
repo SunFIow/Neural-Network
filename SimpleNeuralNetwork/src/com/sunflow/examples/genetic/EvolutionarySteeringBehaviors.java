@@ -1,173 +1,188 @@
 package com.sunflow.examples.genetic;
 
-import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Random;
 
 import com.sunflow.game.Game2D;
-import com.sunflow.math.Vertex2D;
+import com.sunflow.math.Vertex2F;
 import com.sunflow.math3d.MatrixD.Mapper;
 import com.sunflow.simpleneuralnetwork.Creature;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.Population;
 import com.sunflow.util.Log;
 import com.sunflow.util.Utils;
+import com.sunflow.util.Utils.Pair;
 
 public class EvolutionarySteeringBehaviors extends Game2D {
 	public static void main(String[] args) {
 		new EvolutionarySteeringBehaviors();
 	}
 
-	private String bestRocketFile = "rec/bestVehicleBrain";
-
-	public float goalR;
-	private Point2D.Float goal;
-
-	// TheWall
-	private Wall wall;
-
-	// Walls
-	private ArrayList<Wall> walls;
+	private String bestVehicleFile = "rec/bestVehicleBrain";
 
 	// A frame counter to determine when to finish generation
-	private int lifespan;
 
 	// All time high score
 	private double highScore;
 
-	private Population<Rocket> population;
+	private Population<Vehicle> population;
 
 	private int cycles;
 
+	private ArrayList<Vertex2F> food;
+
+	private ArrayList<Vertex2F> poison;
+
+	private boolean debug;
+
+	private static final int popSize = 30, maxFood = 300, maxPoison = 80;
+	private static final float foodNut = 0.3F, poisonNut = -0.5F;
+	private static final double foodRate = 0.2, poisonRate = 0.1, babyRate = 0.002;
+
 	@Override
 	protected void setup() {
-		createCanvas(1280, 800);
+		createCanvas(800, 600);
 		smooth();
 		frameRate(60);
 
-		lifespan = 200;
 		highScore = 0;
 		cycles = 1;
 
-		goalR = 50;
-		goal = new Point2D.Float(width / 2, goalR);
-
-		wall = new Wall(width / 4, height / 2.5F, width / 2, 40);
-		walls = new ArrayList<>();
-		walls.add(wall);
-
-		population = new Population<Rocket>(500) {
+		population = new Population<Vehicle>(popSize) {
 			@Override
-			protected Rocket getCreature() {
-				return new Rocket();
+			protected Vehicle getCreature() {
+				return new Vehicle();
 			}
 		};
 
+		food = new ArrayList<>();
+		for (int i = 0; i < maxFood / 3; i++) {
+			float x = Utils.random(widthF);
+			float y = Utils.random(heightF);
+			food.add(new Vertex2F(x, y));
+		}
+
+		poison = new ArrayList<>();
+		for (int i = 0; i < maxPoison; i++) {
+			float x = Utils.random(widthF);
+			float y = Utils.random(heightF);
+			poison.add(new Vertex2F(x, y));
+		}
 	}
 
-	// Start the game over
 	private void resetGame() {
-		lifespan = 200;
-		// Resetting best Rocket score to 0
-		if (population.bestCreature() != null) {
-			population.bestCreature().invalid();
+		population.generation++;
+		highScore = 0;
+		cycles = 1;
+
+		food = new ArrayList<>();
+		for (int i = 0; i < maxFood / 3; i++) {
+			float x = Utils.random(widthF);
+			float y = Utils.random(heightF);
+			food.add(new Vertex2F(x, y));
 		}
-//		cycles = Math.min(cycles, 100);
-		walls = new ArrayList<>();
-		walls.add(wall);
+
+		poison = new ArrayList<>();
+		for (int i = 0; i < maxPoison; i++) {
+			float x = Utils.random(widthF);
+			float y = Utils.random(heightF);
+			poison.add(new Vertex2F(x, y));
+		}
+
+		population.populateOf(population.bestCreature());
 	}
 
 	private void logic() {
-//		int cycles = this.cycles;
 		// Should we speed up cycles per frame
 		// How many times to advance the game
 		for (int n = 0; n < cycles; n++) {
 			// Are we just running the best Rocket
 			for (int i = population.getActiveSize() - 1; i >= 0; i--) {
-				Rocket rocket = population.getCreature(i);
+				Vehicle vehicle = population.get(i);
 				// Rocket uses its brain!
-				rocket.think(walls);
-				rocket.update();
+				vehicle.think(food, poison);
+				vehicle.update();
 
-				// Check all the pipes
-				for (int j = 0; j < walls.size(); j++) {
-					// It's hit a pipe
-					if (walls.get(j).hits(rocket)) {
-						// Remove this Rocket
-						rocket.hitWall();
-						population.removeCreatures(rocket);
-						break;
-					}
+				vehicle.eat(food, foodNut);
+				vehicle.eat(poison, poisonNut);
+
+				if (!vehicle.offScreen() && Math.random() < babyRate) {
+					Log.err("Baby");
+					Vehicle v = vehicle.mutate();
+					v.pos = Vertex2F.add(vehicle.pos, Vertex2F.of((float) Math.random() * 6 - 4, (float) Math.random() * 6 - 4));
+					population.add(v);
 				}
-				if (rocket.offScreen()) {
-					rocket.hitWall();
-					population.removeCreatures(rocket);
+
+				if (!vehicle.isAlive()) {
+					population.remove(vehicle);
 				}
-				if (rocket.hits(goal, goalR)) {
-					rocket.finished();
-					population.removeCreatures(rocket);
-				}
+			}
+
+			if (Math.random() < (float) (maxFood - poison.size()) / maxFood * foodRate) {
+				float x = Utils.random(widthF);
+				float y = Utils.random(heightF);
+				food.add(new Vertex2F(x, y));
+			}
+
+			if (Math.random() < (float) (maxPoison - poison.size()) / maxPoison * poisonRate) {
+				float x = Utils.random(widthF);
+				float y = Utils.random(heightF);
+				poison.add(new Vertex2F(x, y));
 			}
 
 			// What is highest score of the current population
 			double tempHighScore = 0;
 			// Which is the best Rocket?
-			Rocket tempBestRocket = null;
+			Vehicle tempBestVehicle = null;
 			for (int i = 0; i < population.getActiveSize(); i++) {
-				Rocket rocket = population.getCreature(i);
-				double s = rocket.score();
+				Vehicle vehicle = population.get(i);
+				double s = vehicle.score();
 				if (s > tempHighScore) {
 					tempHighScore = s;
-					tempBestRocket = rocket;
+					tempBestVehicle = vehicle;
 				}
 			}
 
 			// Is it the all time high scorer?
 			if (tempHighScore > highScore) {
 				highScore = tempHighScore;
-				population.setBestCreature(tempBestRocket);
+				population.setBestCreature(tempBestVehicle);
 			}
 
-			lifespan--;
-			if (lifespan == 0 || population.getActiveSize() == 0)
-				return;
+			if (population.getActiveSize() == 0) {
+				resetGame();
+			}
 		}
 	}
 
 	@Override
-	protected void render(Graphics2D g) {
+	protected void draw() {
 		logic();
 
-		background(0);
+		background(25);
 
 		// Draw everything!
-		for (int i = 0; i < walls.size(); i++) {
-			walls.get(i).show();
+
+		int size = population.getActiveSize();
+		for (int i = 0; i < size; i++) {
+			population.get(i).show();
 		}
 
-		fill(200);
-		stroke(100);
-		strokeWeight(5);
-		ellipse(goal.x, goal.y, goalR, goalR);
-
-		for (int i = 0; i < population.getActiveSize(); i++) {
-			population.getCreature(i).show();
+		fill(0, 255, 0, 100);
+		stroke(0);
+		strokeWeight(1);
+		size = food.size();
+		for (int i = 0; i < size; i++) {
+			Vertex2F f = food.get(i);
+			ellipse(f.x, f.y, 10, 10);
 		}
 
-		if (lifespan == 0) {
-			for (int i = population.getActiveSize() - 1; i >= 0; i--) {
-//				Rocket rocket = population.getCreature(i);
-//				rocket.calcScore();
-				population.removeCreatures(i);
-			}
-		}
-
-		// If we're out of Rockets go to the next generation
-		if (population.getActiveSize() == 0) {
-			resetGame();
-			population.nextGeneration();
+		fill(255, 0, 0, 100);
+		size = poison.size();
+		for (int i = 0; i < size; i++) {
+			Vertex2F p = poison.get(i);
+			ellipse(p.x, p.y, 10, 10);
 		}
 
 		fill(255, 0, 0);
@@ -182,35 +197,53 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		if (e.getKeyCode() == KeyEvent.VK_PLUS) {
-			cycles++;
-		} else if (e.getKeyCode() == KeyEvent.VK_MINUS) {
-			cycles--;
-			if (cycles < 1)
-				cycles = 1;
-		} else if (e.isControlDown()) {
-			if (e.getKeyCode() == KeyEvent.VK_S) {
-				serialize("bestRocketBrain", population.bestCreature().brain());
-				Log.info("serialized");
-			} else if (e.getKeyCode() == KeyEvent.VK_L) {
-//				population.setBestCreature(new Rocket((NeuralNetwork) deserialize("bestRocketBrain")));
-				resetGame();
-				population.populateOf(new Rocket((NeuralNetwork) deserialize("bestRocketBrain")));
-				Log.info("deserialized");
+		if (!e.isControlDown()) {
+			switch (e.getKeyCode()) {
+				case KeyEvent.VK_PLUS:
+					cycles++;
+					break;
+				case KeyEvent.VK_MINUS:
+					cycles--;
+					if (cycles < 1) cycles = 1;
+					break;
+				case KeyEvent.VK_A:
+					population.addCreature();
+					break;
+				case KeyEvent.VK_D:
+					debug = !debug;
+					break;
+			}
+		} else {
+			switch (e.getKeyCode()) {
+				case KeyEvent.VK_PLUS:
+					cycles += 10;
+					break;
+				case KeyEvent.VK_MINUS:
+					cycles -= 10;
+					if (cycles < 1) cycles = 1;
+					break;
+				case KeyEvent.VK_S:
+					serialize(bestVehicleFile, population.bestCreature().brain());
+					Log.info("serialized");
+					break;
+				case KeyEvent.VK_L:
+					population.populateOf(new Vehicle((NeuralNetwork) deserialize(bestVehicleFile)));
+					Log.info("deserialized");
+					break;
 			}
 		}
 	}
 
-	private static int inputs_length = 10;
+	private static int inputs_length = 9;
 	private static int outputs_length = 2;
-	private static int hidden_length = 20;
+	private static int hidden_length = 10;
 
-	private class Rocket extends Creature<Rocket> {
+	private class Vehicle extends Creature<Vehicle> {
 		protected Mapper mutate = new Mapper() {
 			@Override
 			public double func(double x, int i, int j) {
-				if (Utils.random(1.0D) < 0.01D) {
-					double offset = new Random().nextGaussian() * 0.25D;
+				if (Utils.random(1.0) < 0.01) {
+					double offset = new Random().nextGaussian() * 0.25;
 					double newx = x + offset;
 					return newx;
 				} else {
@@ -219,181 +252,168 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 			}
 		};
 
-		private float x;
-		private float y;
-		private float l;
+		private Vertex2F pos;
+		private float r;
 
-		private Vertex2D velocity;
-		private Vertex2D thrust;
+		private Vertex2F velocity;
+		private Vertex2F acceleration;
 
+		private float visionFood;
+		private float visionPoison;
+
+		private float health;
 		private int timeAlive;
-		private boolean hitWall;
-		private boolean finished;
 
-//		private Vertex2D vel;
-
-		public Rocket() {
+		public Vehicle() {
 			super(inputs_length, outputs_length, hidden_length);
 			// position and size of Rocket
-			x = width / 2F;
-			y = height - 20F;
-			l = 12F;
+			float x = Utils.random(widthF);
+			float y = Utils.random(heightF);
 
-//			velocity = new Vertex2D();
-			double angle = -1 * Math.random() * Math.PI;
-			velocity = Vertex2D.fromAngle(angle, null);
+			pos = new Vertex2F(x, y);
+			velocity = Vertex2F.fromAngle(-1 * Math.random() * Math.PI, null);
+			acceleration = new Vertex2F();
+
+			r = 8F;
+			health = 1;
+
+			visionFood = Utils.random(10, 400);
+			visionPoison = Utils.random(10, 400);
 		}
 
-		public Rocket(NeuralNetwork brain) {
+		public Vehicle(NeuralNetwork brain) {
 			this();
 			this.brain = brain.clone();
 		}
 
-		public Vertex2D dir() {
-			return velocity.clone().normalize();
-		}
+//		public Vertex2F dir() {
+//			return velocity.clone().normalize();
+//		}
 
-		public float x2() {
-			return (float) (dir().x * l + x);
-		}
-
-		public float y2() {
-			return (float) (dir().y * l + y);
-		}
+//		public float x2() {
+//			return dir().x * r + x;
+//		}
+//
+//		public float y2() {
+//			return dir().y * r + y;
+//		}
 
 		// Create a copy of this Rocket
 		@Override
-		public Rocket mutate() {
-			Rocket copy = clone();
+		public Vehicle mutate() {
+			Vehicle copy = clone();
 			copy.brain().mutate(mutate);
+//			copy.pos = pos.clone();
+			copy.visionFood = (float) (Utils.random(1.0) < 0.1 ? mutate.func(visionFood, 0, 0) : visionFood);
+			copy.visionPoison = (float) (Utils.random(1.0) < 0.1 ? mutate.func(visionPoison, 0, 0) : visionPoison);
 			return copy;
 		}
 
 		@Override
-		public Rocket clone() {
-			return new Rocket(brain);
-		}
-
-		public void hitWall() {
-			hitWall = true;
-		}
-
-		public void finished() {
-			finished = true;
+		public Vehicle clone() {
+			return new Vehicle(brain);
 		}
 
 		@Override
-		public void calcScore() {
-			double dist = Utils.dist(x, y, goal.x, goal.y);
-			score = 1.0D / Math.pow(dist, 4);
-			score *= timeAlive / 150D;
-			if (finished) score *= 10;
-			if (hitWall) score /= 4;
-//			if (hits(goal, goalR)) score *= 2;
+		public double calcScore() {
+			return timeAlive;
 		}
 
 		@Override
 		public void update() {
-			velocity.add(thrust);
-			velocity.limit(10D);
-
-			x += velocity.x;
-			y += velocity.y;
+			velocity.add(acceleration).limit(5);
+			pos.add(velocity);
+			acceleration.mult(0);
 
 			timeAlive++;
+			health -= offScreen() ? 0.01 : 0.005;
 		}
 
-		public boolean hits(Point2D.Float goal, float goalR) {
-//			return Utils.hitBoxCircle(x, y, l, l, goal.x, goal.y, goalR);
-//			return Utils.hitLineCircle(x, y, x2(), y2(), goal.x, goal.y, goalR);
-			return Utils.dist(x, y, goal.x, goal.y) < goalR - l;
+		public boolean offScreen() {
+			return (pos.x < 0 || pos.y < 0 || pos.x > widthF || pos.y > heightF);
+		}
+
+		public boolean isAlive() {
+			return health > 0;
+		}
+
+		public void eat(ArrayList<Vertex2F> list, float nutrition) {
+			for (int i = list.size() - 1; i >= 0; i--) {
+				if (Vertex2F.dist(pos, list.get(i)) < r) {
+					health += nutrition;
+					list.remove(i);
+				}
+			}
 		}
 
 		// This is the key function now that decides
 		// if it should jump or not jump!
-		public void think(ArrayList<Wall> walls) {
+		public void think(ArrayList<Vertex2F> food, ArrayList<Vertex2F> poison) {
 			// Now create the inputs to the neural network
 			double[] inputs = new double[inputs_length];
-			// x position the rocket
-			inputs[0] = Utils.map(x, 0, width, 0, 1);
-			// y position the rocket
-			inputs[1] = Utils.map(y, 0, height, 0, 1);
-			// velocity x the rocket
-			inputs[2] = Utils.map(velocity.x, -10, 10, 0, 1);
-			// velocity y the rocket
-			inputs[3] = Utils.map(velocity.y, -10, 10, 0, 1);
-			// x position of the goal
-			inputs[4] = Utils.map(goal.x, 0, width, 0, 1);
-			// y position of the goal
-			inputs[5] = Utils.map(goal.y, 0, height, 0, 1);
-			for (int i = 0; i < walls.size(); i++) {
-				Wall w = walls.get(i);
-				// x position of the wall
-				inputs[6 + i] = Utils.map(w.x, 0, width, 0, 1);
-				// y position of the wall
-				inputs[7 + i] = Utils.map(w.y, 0, height, 0, 1);
-				// width of the wall
-				inputs[8 + i] = Utils.map(w.w, 0, width, 0, 1);
-				// height of the wall
-				inputs[9 + i] = Utils.map(w.h, 0, height, 0, 1);
-			}
 
+			Pair<Vertex2F, Float> closestFood = Utils.getClosest(pos, food.toArray(new Vertex2F[0]));
+			Pair<Vertex2F, Float> closestPoison = Utils.getClosest(pos, poison.toArray(new Vertex2F[0]));
+
+			// x position the vehicle
+			inputs[0] = Utils.map(pos.x, 0, widthF, 0, 1);
+			// y position the vehicle
+			inputs[1] = Utils.map(pos.y, 0, heightF, 0, 1);
+			// velocity x the vehicle
+			inputs[2] = Utils.map(velocity.x, -5, 5, 0, 1);
+			// velocity y the vehicle
+			inputs[3] = Utils.map(velocity.y, -5, 5, 0, 1);
+			if (closestFood.a != null) {
+				// x position the closest food
+				inputs[4] = Utils.map(closestFood.a.x, 0, widthF, 0, 1);
+				// y position the closest food
+				inputs[5] = Utils.map(closestFood.a.y, 0, heightF, 0, 1);
+			}
+			if (closestPoison.a != null) {
+				// x position the closest poison
+				inputs[6] = Utils.map(closestPoison.a.x, 0, widthF, 0, 1);
+				// y position the closest poison
+				inputs[7] = Utils.map(closestPoison.a.y, 0, heightF, 0, 1);
+			}
+			// health of the vehicle
+			inputs[8] = health;
 			// Get the outputs from the network
 			double[] action = this.brain().predict(inputs);
 			// Decide the thrust!
 //			double angle = -1 * Math.random() * Math.PI;
 //			thrust = Vertex2D.of(action[0], action[1]);
-			thrust = new Vertex2D(action[0] * 2 - 1, action[1] * 2 - 1).mult(2);
+//			applyForce(new Vertex2F((float) (action[0] - action[1]), (float) (action[2] - action[3])).normalize().mult(2));
+			if (visionFood > closestFood.b) {
+				Vertex2F pointer = Vertex2F.sub(closestFood.a, pos);
+				applyForce(pointer.normalize().mult((float) (action[0] * 2 - 1)));
+			}
+			if (visionPoison > closestPoison.b) {
+				Vertex2F pointer = Vertex2F.sub(closestPoison.a, pos);
+				applyForce(pointer.normalize().mult((float) (action[1] * 2 - 1)));
+			}
+
 		}
 
-		public boolean offScreen() {
-			return (x < 0 || y < 0 || x > width || y > height);
+		private void applyForce(Vertex2F force) {
+			acceleration.add(force);
 		}
 
 		// Display the Rocket
 		public void show() {
-			fill(255, 100);
-			stroke(255);
-			strokeWeight(5);
-			line(x, y, x2(), y2());
-//			ellipse(this.x, this.y, this.r * 2, this.r * 2);
-		}
-	}
+			fill(lerpColor(color(255, 0, 0), color(0, 255, 0), health), 100);
+			stroke(0);
+			strokeWeight(1);
+//			line(x, y, x2(), y2());
+			ellipse(pos.x, pos.y, r * 2, r * 2);
 
-	private class Wall {
-		private float x;
-		private float y;
-		private float w;
-		private float h;
+			if (debug) {
+				noFill();
+				stroke(255, 0, 0, 100);
+				ellipse(pos.x, pos.y, visionPoison, visionPoison);
 
-		@SuppressWarnings("unused")
-		public Wall() {
-			this(
-					Utils.random(0, width),
-					Utils.random(0, height),
-					Utils.random(width / 8, width - width / 8),
-					Utils.random(height / 32, height / 16));
-
-		}
-
-		public Wall(float x, float y, float w, float h) {
-			this.x = Utils.clamp(0, x, width - w);
-			this.y = Utils.clamp(0, y, height - h);
-			this.w = w;
-			this.h = h;
-		}
-
-		// Did this wall hit a Rocket?
-		public boolean hits(Rocket rocket) {
-			return Utils.hitLineBox(rocket.x, rocket.y, rocket.x2(), rocket.y2(), x, y, w, h);
-		}
-
-		// Draw the wall
-		public void show() {
-			fill(200);
-			stroke(255);
-			strokeWeight(5);
-			rect(x, y, w, h);
+				stroke(0, 255, 0, 100);
+				ellipse(pos.x, pos.y, visionFood, visionFood);
+			}
 		}
 	}
 }

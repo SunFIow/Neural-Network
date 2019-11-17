@@ -1,7 +1,5 @@
 package com.sunflow.simpleperceptron;
 
-import java.awt.Graphics2D;
-
 import com.sunflow.game.Game2D;
 import com.sunflow.simpleperceptron.training.Point;
 import com.sunflow.util.Log;
@@ -18,9 +16,8 @@ public class SimplePerceptron extends Game2D {
 
 	@Override
 	protected void setup() {
-		frameRate(30);
 		createCanvas(500, 500);
-		background(255);
+		frameRate(30);
 		smooth();
 
 		points = new Point[100];
@@ -47,7 +44,7 @@ public class SimplePerceptron extends Game2D {
 	}
 
 	@Override
-	protected void render(Graphics2D g) {
+	protected void draw() {
 		background(255);
 		for (Point p : points) {
 			p.show(this);

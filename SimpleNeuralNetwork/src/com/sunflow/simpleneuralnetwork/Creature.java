@@ -39,7 +39,7 @@ public abstract class Creature<Type> implements Cloneable {
 	}
 
 	public double score() {
-		calcScore();
+		score = calcScore();
 		return score;
 	}
 
@@ -55,5 +55,5 @@ public abstract class Creature<Type> implements Cloneable {
 
 	public abstract void update();
 
-	protected abstract void calcScore();
+	protected abstract double calcScore();
 }

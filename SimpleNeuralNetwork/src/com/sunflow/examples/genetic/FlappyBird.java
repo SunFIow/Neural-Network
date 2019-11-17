@@ -104,6 +104,7 @@ public class FlappyBird extends Game2D {
 	@Override
 	protected void tick(double multiplier) {
 		// logic();
+		err("tick");
 	}
 
 	private void logic() {
@@ -141,7 +142,7 @@ public class FlappyBird extends Game2D {
 				// Or are we running all the active birds
 			} else {
 				for (int i = population.getActiveSize() - 1; i >= 0; i--) {
-					Bird bird = population.getCreature(i);
+					Bird bird = population.get(i);
 					// Bird uses its brain!
 					bird.think(pipes);
 					bird.update();
@@ -151,13 +152,13 @@ public class FlappyBird extends Game2D {
 						// It's hit a pipe
 						if (pipes.get(j).hits(bird)) {
 							// Remove this bird
-							population.removeCreatures(i);
+							population.remove(i);
 							break;
 						}
 					}
 
 					if (bird.bottomTop()) {
-						population.removeCreatures(i);
+						population.remove(i);
 					}
 					if (population.getActiveSize() == 0)
 						return;
@@ -177,7 +178,7 @@ public class FlappyBird extends Game2D {
 				// Which is the best bird?
 				Bird tempBestBird = null;
 				for (int i = 0; i < population.getActiveSize(); i++) {
-					Bird bird = population.getCreature(i);
+					Bird bird = population.get(i);
 					double s = bird.score();
 					if (s > tempHighScore) {
 						tempHighScore = s;
@@ -222,7 +223,7 @@ public class FlappyBird extends Game2D {
 			population.bestCreature().show();
 		} else {
 			for (int i = 0; i < population.getActiveSize(); i++) {
-				population.getCreature(i).show();
+				population.get(i).show();
 			}
 			// If we're out of birds go to the next generation
 			if (population.getActiveSize() == 0) {
@@ -244,21 +245,36 @@ public class FlappyBird extends Game2D {
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		if (e.getKeyCode() == KeyEvent.VK_PLUS) {
-			cycles++;
-		} else if (e.getKeyCode() == KeyEvent.VK_MINUS) {
-			cycles--;
-			if (cycles < 1)
-				cycles = 1;
-		} else if (e.isControlDown()) {
-			if (e.getKeyCode() == KeyEvent.VK_S) {
-				serialize(bestBirdFile, population.bestCreature().brain());
-				Log.info("serialized");
-			} else if (e.getKeyCode() == KeyEvent.VK_L) {
-//				population.setBestCreature(new Bird((NeuralNetwork) deserialize("bestBirdBrain")));
-				resetGame();
-				population.populateOf(new Bird((NeuralNetwork) deserialize(bestBirdFile)));
-				Log.info("deserialized");
+		if (!e.isControlDown()) {
+			switch (e.getKeyCode()) {
+				case KeyEvent.VK_PLUS:
+					cycles++;
+					break;
+				case KeyEvent.VK_MINUS:
+					cycles--;
+					if (cycles < 1) cycles = 1;
+					break;
+				case KeyEvent.VK_A:
+					population.addCreature();
+					break;
+			}
+		} else {
+			switch (e.getKeyCode()) {
+				case KeyEvent.VK_PLUS:
+					cycles += 10;
+					break;
+				case KeyEvent.VK_MINUS:
+					cycles -= 10;
+					if (cycles < 1) cycles = 1;
+					break;
+				case KeyEvent.VK_S:
+					serialize(bestBirdFile, population.bestCreature().brain());
+					Log.info("serialized");
+					break;
+				case KeyEvent.VK_L:
+					population.populateOf(new Bird((NeuralNetwork) deserialize(bestBirdFile)));
+					Log.info("deserialized");
+					break;
 			}
 		}
 	}
@@ -381,8 +397,8 @@ public class FlappyBird extends Game2D {
 		}
 
 		@Override
-		protected void calcScore() {
-			score = timeAlive;
+		protected double calcScore() {
+			return timeAlive;
 		}
 	}
 

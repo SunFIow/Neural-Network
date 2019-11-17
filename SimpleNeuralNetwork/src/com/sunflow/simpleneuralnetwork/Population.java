@@ -6,7 +6,7 @@ import com.sunflow.util.Utils;
 
 public abstract class Population<Type extends Creature<Type>> {
 
-	private int totalPopulation;
+	public int totalPopulation;
 	private int totalPopulationOnLoaded;
 	// All active birds (not yet collided with pipe)
 	private ArrayList<Type> activeCreatures;
@@ -14,7 +14,7 @@ public abstract class Population<Type extends Creature<Type>> {
 	private ArrayList<Type> allCreatures;
 
 	private Type bestCreature;
-	private int generation = 1;
+	public int generation = 1;
 
 	public Population(int totalPopulation) {
 		this.totalPopulation = totalPopulation;
@@ -64,11 +64,6 @@ public abstract class Population<Type extends Creature<Type>> {
 	}
 
 	private void normalizeFitness(ArrayList<Type> creatures) {
-		// Make score exponentially better?
-		for (int i = 0; i < creatures.size(); i++) {
-			creatures.get(i).score = Math.pow(creatures.get(i).score, 2);
-		}
-
 		// Add up all the scores
 		double sum = 0;
 		for (int i = 0; i < creatures.size(); i++) {
@@ -108,15 +103,23 @@ public abstract class Population<Type extends Creature<Type>> {
 //		return activeCreatures;
 //	}
 
-	public Type getCreature(int i) {
+	public Type get(int i) {
 		return activeCreatures.get(i);
 	}
 
-	public void removeCreatures(int i) {
+	public void addCreature() {
+		add(getCreature());
+	}
+
+	public void add(Type creature) {
+		activeCreatures.add(creature);
+	}
+
+	public void remove(int i) {
 		activeCreatures.remove(i);
 	}
 
-	public void removeCreatures(Creature<Type> creature) {
+	public void remove(Type creature) {
 		activeCreatures.remove(creature);
 	}
 
@@ -137,7 +140,7 @@ public abstract class Population<Type extends Creature<Type>> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void populateOf(Type creature) {
+	public void populateOf(Creature<Type> creature) {
 		// Generate a new set of birds
 		ArrayList<Type> newCreatures = new ArrayList<>();
 		newCreatures.add(creature.clone());
