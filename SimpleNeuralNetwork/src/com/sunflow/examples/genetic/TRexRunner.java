@@ -7,7 +7,6 @@ import com.sunflow.game.Game2D;
 import com.sunflow.simpleneuralnetwork.Creature;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.Population;
-import com.sunflow.util.Utils;
 
 public class TRexRunner extends Game2D {
 	public static void main(String[] args) {
@@ -21,7 +20,7 @@ public class TRexRunner extends Game2D {
 	private float groundY;
 	private ArrayList<Cactus> cacti;
 
-//	private TRex rex;
+	private TRex rex;
 	private Population<TRex> population;
 	private int cycles;
 	private int score;
@@ -29,6 +28,7 @@ public class TRexRunner extends Game2D {
 	private boolean runBest;
 	private double highScore;
 	private long counter;
+	private boolean humanPlay;
 
 	@Override
 	protected void setup() {
@@ -41,17 +41,12 @@ public class TRexRunner extends Game2D {
 		highScore = 0;
 		score = 0;
 		bestScore = 0;
+		humanPlay = false;
 
 		groundY = heightF - 20;
-//		rex = new TRex();
+		rex = new TRex();
 		cacti = new ArrayList<>();
-		cacti.add(new Cactus());
-		population = new Population<TRex>(50) {
-			@Override
-			protected TRex getCreature() {
-				return new TRex();
-			}
-		};
+		population = new Population<TRex>(50, TRex::new);
 	}
 
 	// Start the game over
@@ -68,19 +63,58 @@ public class TRexRunner extends Game2D {
 		cacti = new ArrayList<>();
 	}
 
-	protected void logic() {
+	@Override
+	protected void update(double delta) {
 		for (int n = 0; n < cycles; n++) {
-			for (int i = 0; i < population.getActiveSize(); i++) {
-				TRex rex = population.get(i);
-				rex.think();
-				rex.update();
-			}
-//		rex.think();
-//			rex.update();
+			if (humanPlay) {
+//					rex.think();
+				rex.update(delta);
+			} else {
+				for (int i = 0; i < population.getActiveSize(); i++) {
+					TRex rex = population.get(i);
+					rex.think();
+					rex.update(delta);
+					if (rex.collide(cacti)) population.remove(rex);
+				}
+//				for (int i = 0; i < population.getActiveSize(); i++) {
+//					if (population.get(i).collide(cacti)) {
+//						population.remove(i);
+//						break;
+//					}
+//				}
 
+				// What is highest score of the current population
+				double tempHighScore = 0;
+				// If we're training
+				if (!runBest) {
+					// Which is the best bird?
+					TRex tempBestBird = null;
+					for (int i = 0; i < population.getActiveSize(); i++) {
+						TRex bird = population.get(i);
+						double s = bird.score();
+						if (s > tempHighScore) {
+							tempHighScore = s;
+							tempBestBird = bird;
+						}
+					}
+
+					// Is it the all time high scorer?
+					if (tempHighScore > highScore) {
+//							Log.info("new BestBird");
+						highScore = tempHighScore;
+						population.setBestCreature(tempBestBird);
+					}
+				} else {
+					// Just one bird, the best one so far
+					tempHighScore = population.bestCreature().score();
+					if (tempHighScore > highScore) {
+						highScore = tempHighScore;
+					}
+				}
+			}
 			for (int i = cacti.size() - 1; i >= 0; i--) {
 				Cactus cactus = cacti.get(i);
-				cactus.update();
+				cactus.update(delta);
 				if (cactus.offScreen()) {
 					cacti.remove(i);
 					score++;
@@ -89,43 +123,8 @@ public class TRexRunner extends Game2D {
 					}
 				} else cactus.show();
 			}
-			for (int i = 0; i < population.getActiveSize(); i++) {
-				if (population.get(i).collide(cacti)) {
-					population.remove(i);
-					break;
-				}
-			}
 
-			// What is highest score of the current population
-			double tempHighScore = 0;
-			// If we're training
-			if (!runBest) {
-				// Which is the best bird?
-				TRex tempBestBird = null;
-				for (int i = 0; i < population.getActiveSize(); i++) {
-					TRex bird = population.get(i);
-					double s = bird.score();
-					if (s > tempHighScore) {
-						tempHighScore = s;
-						tempBestBird = bird;
-					}
-				}
-
-				// Is it the all time high scorer?
-				if (tempHighScore > highScore) {
-//							Log.info("new BestBird");
-					highScore = tempHighScore;
-					population.setBestCreature(tempBestBird);
-				}
-			} else {
-				// Just one bird, the best one so far
-				tempHighScore = population.bestCreature().score();
-				if (tempHighScore > highScore) {
-					highScore = tempHighScore;
-				}
-			}
-
-			if (counter++ % Math.round((frameRate * 1.5)) == 0) {
+			if (counter++ % (frameRate * 2) == 0) {
 				cacti.add(new Cactus());
 			}
 		}
@@ -133,30 +132,33 @@ public class TRexRunner extends Game2D {
 
 	@Override
 	protected void draw() {
-		logic();
 		background(240);
 
 		stroke(0);
 		strokeWeight(3);
 		line(0, groundY, widthF, groundY);
 
+		@SuppressWarnings("unchecked")
 		ArrayList<Cactus> cacti = (ArrayList<Cactus>) this.cacti.clone();
 		for (Cactus cactus : cacti) {
 			cactus.show();
 		}
-		if (runBest) {
-			population.bestCreature().show();
+		if (humanPlay) {
+			rex.show();
 		} else {
-			for (int i = 0; i < population.getActiveSize(); i++) {
-				population.get(i).show();
-			}
-			// If we're out of birds go to the next generation
-			if (population.getActiveSize() == 0) {
-				resetGame();
-				population.nextGeneration();
+			if (runBest) {
+				population.bestCreature().show();
+			} else {
+				for (int i = 0; i < population.getActiveSize(); i++) {
+					population.get(i).show();
+				}
+				// If we're out of birds go to the next generation
+				if (population.getActiveSize() == 0) {
+					resetGame();
+					population.nextGeneration();
+				}
 			}
 		}
-//		rex.show();
 
 		fill(255, 0, 0);
 		stroke(50, 0, 0);
@@ -171,19 +173,16 @@ public class TRexRunner extends Game2D {
 
 	@Override
 	public void keyPressed(KeyEvent e) {
+		switch (e.getKeyCode()) {
+			case KeyEvent.VK_SPACE:
+				rex.jump();
+				break;
+			case KeyEvent.VK_CONTROL:
+				rex.sneak();
+				break;
+		}
 		if (!e.isControlDown()) {
 			switch (e.getKeyCode()) {
-				case KeyEvent.VK_A:
-//					rex.jump(true);
-					break;
-				case KeyEvent.VK_SPACE:
-				case KeyEvent.VK_D:
-//					rex.jump(false);
-					break;
-				case KeyEvent.VK_CONTROL:
-				case KeyEvent.VK_S:
-//					rex.sneak();
-					break;
 				case KeyEvent.VK_PLUS:
 					cycles++;
 					break;
@@ -208,34 +207,40 @@ public class TRexRunner extends Game2D {
 	@Override
 	public void keyReleased(KeyEvent e) {
 		switch (e.getKeyCode()) {
+			case KeyEvent.VK_SPACE:
+				rex.spaceReleased();
+				break;
 			case KeyEvent.VK_CONTROL:
-			case KeyEvent.VK_S:
-//				rex.unSneak();
+				rex.unSneak();
 				break;
 		}
 	}
 
 	private class TRex extends Creature<TRex> {
-		private static final float gravity = 0.5F;
-		private static final float smallJump = 8.5F, bigJump = 10.5F;
+		private static final float gravityFall = 4000F;
+		private static final float gravityJump = 4000F;
+		private static final float gravityJumpBig = 2000F;
+		private static final float jumpForce = 40000F;
+
 		private static final float x = 30;
 		private static final float r = 15;
 
-		private float y;
-
-		private float vel;
+		private float yPos;
+		private float yVel;
+		private float yAcc;
 
 		private boolean onGround;
 		private boolean sneaking;
+		private boolean spaceDown;
 
-		private int bufferJump;
+		private boolean bufferJump;
 
 		private int timeAlive;
 
 		private TRex() {
 			super(inputs_length, outputs_length, hidden_length);
 
-			y = groundY;
+			yPos = groundY;
 
 			onGround = true;
 			sneaking = false;
@@ -262,20 +267,30 @@ public class TRexRunner extends Game2D {
 			fill(255, 150, 150, 100);
 			stroke(0, 150);
 			strokeWeight(3);
-			if (!sneaking) ellipse(x, y, r * 2, r * 2);
-			else ellipse(x, y + r / 2, r * 2, r);
+			if (!sneaking) ellipse(x, yPos, r * 2, r * 2);
+			else ellipse(x, yPos + r / 2, r * 2, r);
 		}
 
-		private void jump(boolean small) {
+		private void jump() {
 			if (onGround) {
-				vel = small ? -smallJump : -bigJump;
+				applyForce(-jumpForce);
+				yPos = groundY - r - 0.0001F;
 				onGround = false;
 				sneaking = false;
+				spaceDown = true;
 			} else {
-				if (vel > 0 && y > groundY - 70) {
-					bufferJump = small ? 1 : 2;
+				if (yVel > 0 && yPos > groundY - 30) {
+					bufferJump = true;
 				}
 			}
+		}
+
+		private void applyForce(float force) {
+			yAcc += force;// * Math.pow(frameRate / 60D, 2);
+		}
+
+		private void spaceReleased() {
+			spaceDown = false;
 		}
 
 		private void sneak() {
@@ -287,18 +302,21 @@ public class TRexRunner extends Game2D {
 		}
 
 		@Override
-		public void update() {
-			vel += gravity;
-			Utils.clamp(-10, vel, 10);
-			y += vel;
+		public void update(double delta) {
+			applyForce(yVel > 0 ? gravityFall : (spaceDown ? gravityJumpBig : gravityJump));
 
-			if (y + r >= groundY) {
-				y = groundY - r;
+			yVel += yAcc * delta;
+			yPos += yVel * delta + yAcc * 0.5 * delta * delta;
+			yAcc = 0;
+
+			if (yPos + r >= groundY) {
+				yPos = groundY - r;
 				onGround = true;
-			}
-			if (onGround && bufferJump > 0) {
-				jump(bufferJump == 1 ? true : false);
-				bufferJump = 0;
+				yVel = 0;
+				if (bufferJump) {
+					jump();
+					bufferJump = false;
+				}
 			}
 
 			timeAlive++;
@@ -308,7 +326,7 @@ public class TRexRunner extends Game2D {
 			double record = 0;
 			Cactus closest = null;
 			for (Cactus c : cacti) {
-				double dist = Utils.dist(c.x, 0, x, 0);
+				double dist = dist(c.x, 0, x, 0);
 				if (dist < record) {
 					record = dist;
 					closest = c;
@@ -325,9 +343,9 @@ public class TRexRunner extends Game2D {
 //			inputs[0] = r;
 
 			// y-position of this t-rex
-			inputs[0] = y;
+			inputs[0] = yPos;
 			// y-velocity of this t-rex
-			inputs[1] = vel;
+			inputs[1] = yVel;
 			// x-position of the closest cactus
 			inputs[2] = 0;
 			if (closest != null) {
@@ -344,10 +362,10 @@ public class TRexRunner extends Game2D {
 			int highest = findHighest(action);
 			switch (highest) {
 				case 0:
-					jump(false);
+					jump();
 					break;
 				case 1:
-					jump(true);
+					spaceReleased();
 					break;
 				case 2:
 					sneak();
@@ -360,7 +378,7 @@ public class TRexRunner extends Game2D {
 
 		public boolean collide(ArrayList<Cactus> cacti) {
 			for (Cactus c : cacti) {
-				if (Utils.hitBoxCircle(c.x, c.y, c.w, c.h, x, y, r * 0.8)) return true;
+				if (hitBoxCircle(c.x, c.y, c.w, c.h, x, yPos, r * 0.8)) return true;
 			}
 			return false;
 		}
@@ -384,7 +402,7 @@ public class TRexRunner extends Game2D {
 	}
 
 	private class Cactus {
-		private final float vel = 5 + 0.12F * (frameCount / frameRate);
+		private final float vel = 300 + 1F * (counter / frameRate);
 		private final float w = 20;
 		private final float h = 38;
 
@@ -403,8 +421,8 @@ public class TRexRunner extends Game2D {
 			rect(x, y, w, h);
 		}
 
-		private void update() {
-			x -= vel;
+		private void update(double delta) {
+			x -= vel * delta;
 		}
 
 		private boolean offScreen() {

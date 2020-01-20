@@ -5,7 +5,6 @@ import java.awt.Graphics2D;
 import com.sunflow.game.Game2D;
 import com.sunflow.simpleneuralnetwork.NN;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
-import com.sunflow.util.Utils;
 
 public class Xor extends Game2D {
 	public static void main(String[] args) {
@@ -45,9 +44,9 @@ public class Xor extends Game2D {
 	}
 
 	@Override
-	protected void tick(double multiplier) {
+	protected void update(double multiplier) {
 		for (int i = 0; i < 100; i++) {
-			double[][] data = training_data[Utils.random(0, 3)];
+			double[][] data = training_data[random(0, 3)];
 			brain.train(data[0], data[1]);
 			iteration++;
 		}

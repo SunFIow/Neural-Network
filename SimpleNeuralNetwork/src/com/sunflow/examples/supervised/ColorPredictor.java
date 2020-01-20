@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import com.sunflow.game.Game2D;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.util.Constants;
-import com.sunflow.util.Utils;
 
 public class ColorPredictor extends Game2D implements Serializable {
 	public static void main(String[] args) {
@@ -110,8 +109,8 @@ public class ColorPredictor extends Game2D implements Serializable {
 	}
 
 	private void pickNew() {
-		r = Utils.random(1F);
-		g = Utils.random(1F);
-		b = Utils.random(1F);
+		r = random(1F);
+		g = random(1F);
+		b = random(1F);
 	}
 }

@@ -3,19 +3,16 @@ package com.sunflow.simpleneuralnetwork;
 import java.util.Random;
 
 import com.sunflow.math3d.MatrixD.Mapper;
-import com.sunflow.util.Utils;
+import com.sunflow.util.GameUtils;
 
-public abstract class Creature<Type> implements Cloneable {
-	protected Mapper mutate = new Mapper() {
-		@Override
-		public double func(double x, int i, int j) {
-			if (Utils.random(1.0D) < 0.01D) {
-				double offset = new Random().nextGaussian() * 0.25D;
-				double newx = x + offset;
-				return newx;
-			} else {
-				return x;
-			}
+public abstract class Creature<Type> implements Cloneable, GameUtils {
+	protected Mapper mutate = (x, i, j) -> {
+		if (random(1.0D) < 0.01D) {
+			double offset = new Random().nextGaussian() * 0.25D;
+			double newx = x + offset;
+			return newx;
+		} else {
+			return x;
 		}
 	};
 
@@ -53,7 +50,11 @@ public abstract class Creature<Type> implements Cloneable {
 
 	protected abstract Type mutate();
 
-	public abstract void update();
+	public void update() {
+		update(-1);
+	}
+
+	public abstract void update(double delta);
 
 	protected abstract double calcScore();
 }

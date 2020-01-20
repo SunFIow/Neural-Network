@@ -8,7 +8,6 @@ import com.sunflow.simpleneuralnetwork.Creature;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.Population;
 import com.sunflow.util.Log;
-import com.sunflow.util.Utils;
 
 public class FlappyBird extends Game2D {
 	public static void main(String[] args) {
@@ -55,13 +54,7 @@ public class FlappyBird extends Game2D {
 
 		pipes = new ArrayList<>();
 
-//		population = new Population<Bird>(500, this::resetGame, Bird::new);
-		population = new Population<Bird>(500) {
-			@Override
-			protected Bird getCreature() {
-				return new Bird();
-			}
-		};
+		population = new Population<Bird>(500, Bird::new, this::resetGame);
 
 		// Access the interface elements
 //		speedSlider = select('#speedSlider');
@@ -102,12 +95,7 @@ public class FlappyBird extends Game2D {
 	}
 
 	@Override
-	protected void tick(double multiplier) {
-		// logic();
-		err("tick");
-	}
-
-	private void logic() {
+	protected void update(double dt) {
 		// Should we speed up cycles per frame
 		int cycles = this.cycles; // speedSlider.value();
 //		speedSpan.html(cycles);
@@ -209,7 +197,7 @@ public class FlappyBird extends Game2D {
 
 	@Override
 	protected void draw() {
-		logic();
+//		logic();
 		background(10);
 
 		strokeWeight(5);
@@ -283,7 +271,7 @@ public class FlappyBird extends Game2D {
 //		private Mapper mutate = new Mapper() {
 //			@Override
 //			public double func(double x, int i, int j) {
-//				if (Utils.random(1.0D) < 0.01D) {
+//				if (random(1.0D) < 0.01D) {
 //					double offset = new Random().nextGaussian() * 0.2D;
 //					double newx = x + offset;
 //					return newx;
@@ -358,15 +346,15 @@ public class FlappyBird extends Game2D {
 				// Now create the inputs to the neural network
 				double[] inputs = new double[5];
 				// x position of closest pipe
-				inputs[0] = Utils.map(closest.x, this.x, width, 0, 1);
+				inputs[0] = map(closest.x, this.x, width, 0, 1d);
 				// top of closest pipe opening
-				inputs[1] = Utils.map(closest.top, 0, height, 0, 1);
+				inputs[1] = map(closest.top, 0, height, 0, 1d);
 				// bottom of closest pipe opening
-				inputs[2] = Utils.map(closest.bottom, 0, height, 0, 1);
+				inputs[2] = map(closest.bottom, 0, height, 0, 1d);
 				// bird's y position
-				inputs[3] = Utils.map(this.y, 0, height, 0, 1);
+				inputs[3] = map(this.y, 0, height, 0, 1d);
 				// bird's y velocity
-				inputs[4] = Utils.map(this.velocity, -30, 30, 0, 1);
+				inputs[4] = map(this.velocity, -30, 30, 0, 1d);
 
 				// Get the outputs from the network
 				double[] action = this.brain().predict(inputs);
@@ -387,9 +375,9 @@ public class FlappyBird extends Game2D {
 		}
 
 		@Override
-		public void update() {
+		public void update(double dt) {
 			this.velocity += this.gravity;
-			this.velocity = Utils.clamp(-30F, this.velocity, 30F);
+			this.velocity = clamp(-30F, this.velocity, 30F);
 			this.y += this.velocity;
 
 			// Every frame it is alive increases the score
@@ -397,7 +385,7 @@ public class FlappyBird extends Game2D {
 		}
 
 		@Override
-		protected double calcScore() {
+		public double calcScore() {
 			return timeAlive;
 		}
 	}
@@ -415,7 +403,7 @@ public class FlappyBird extends Game2D {
 			// How big is the empty space
 			this.spacing = 125F;
 			// Where is th center of the empty space
-			this.centery = Utils.random(spacing, height - spacing);
+			this.centery = random(spacing, height - spacing);
 
 			// Top and bottom of pipe
 			this.top = centery - spacing / 2;

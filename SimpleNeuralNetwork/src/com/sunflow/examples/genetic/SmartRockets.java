@@ -13,7 +13,6 @@ import com.sunflow.simpleneuralnetwork.Creature;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.Population;
 import com.sunflow.util.Log;
-import com.sunflow.util.Utils;
 
 public class SmartRockets extends Game2D {
 	public static void main(String[] args) {
@@ -58,12 +57,7 @@ public class SmartRockets extends Game2D {
 		walls = new ArrayList<>();
 		walls.add(wall);
 
-		population = new Population<Rocket>(500) {
-			@Override
-			protected Rocket getCreature() {
-				return new Rocket();
-			}
-		};
+		population = new Population<Rocket>(500, Rocket::new);
 
 	}
 
@@ -224,7 +218,7 @@ public class SmartRockets extends Game2D {
 		protected Mapper mutate = new Mapper() {
 			@Override
 			public double func(double x, int i, int j) {
-				if (Utils.random(1.0D) < 0.01D) {
+				if (random(1.0D) < 0.01D) {
 					double offset = new Random().nextGaussian() * 0.25D;
 					double newx = x + offset;
 					return newx;
@@ -299,7 +293,7 @@ public class SmartRockets extends Game2D {
 
 		@Override
 		public double calcScore() {
-			double dist = Utils.dist(x, y, goal.x, goal.y);
+			double dist = dist(x, y, goal.x, goal.y);
 			double score = 1.0D / Math.pow(dist, 4);
 			score *= timeAlive / 150D;
 			if (finished) score *= 10;
@@ -309,7 +303,7 @@ public class SmartRockets extends Game2D {
 		}
 
 		@Override
-		public void update() {
+		public void update(double dt) {
 			velocity.add(thrust);
 			velocity.limit(10D);
 
@@ -320,9 +314,9 @@ public class SmartRockets extends Game2D {
 		}
 
 		public boolean hits(Point2D.Float goal, float goalR) {
-//			return Utils.hitBoxCircle(x, y, l, l, goal.x, goal.y, goalR);
-//			return Utils.hitLineCircle(x, y, x2(), y2(), goal.x, goal.y, goalR);
-			return Utils.dist(x, y, goal.x, goal.y) < goalR - l;
+//			return hitBoxCircle(x, y, l, l, goal.x, goal.y, goalR);
+//			return hitLineCircle(x, y, x2(), y2(), goal.x, goal.y, goalR);
+			return dist(x, y, goal.x, goal.y) < goalR - l;
 		}
 
 		// This is the key function now that decides
@@ -331,27 +325,27 @@ public class SmartRockets extends Game2D {
 			// Now create the inputs to the neural network
 			double[] inputs = new double[inputs_length];
 			// x position the rocket
-			inputs[0] = Utils.map(x, 0, width, 0, 1);
+			inputs[0] = map(x, 0, width, 0, 1);
 			// y position the rocket
-			inputs[1] = Utils.map(y, 0, height, 0, 1);
+			inputs[1] = map(y, 0, height, 0, 1);
 			// velocity x the rocket
-			inputs[2] = Utils.map(velocity.x, -10, 10, 0, 1);
+			inputs[2] = map(velocity.x, -10, 10, 0, 1);
 			// velocity y the rocket
-			inputs[3] = Utils.map(velocity.y, -10, 10, 0, 1);
+			inputs[3] = map(velocity.y, -10, 10, 0, 1);
 			// x position of the goal
-			inputs[4] = Utils.map(goal.x, 0, width, 0, 1);
+			inputs[4] = map(goal.x, 0, width, 0, 1);
 			// y position of the goal
-			inputs[5] = Utils.map(goal.y, 0, height, 0, 1);
+			inputs[5] = map(goal.y, 0, height, 0, 1);
 			for (int i = 0; i < walls.size(); i++) {
 				Wall w = walls.get(i);
 				// x position of the wall
-				inputs[6 + i] = Utils.map(w.x, 0, width, 0, 1);
+				inputs[6 + i] = map(w.x, 0, width, 0, 1);
 				// y position of the wall
-				inputs[7 + i] = Utils.map(w.y, 0, height, 0, 1);
+				inputs[7 + i] = map(w.y, 0, height, 0, 1);
 				// width of the wall
-				inputs[8 + i] = Utils.map(w.w, 0, width, 0, 1);
+				inputs[8 + i] = map(w.w, 0, width, 0, 1);
 				// height of the wall
-				inputs[9 + i] = Utils.map(w.h, 0, height, 0, 1);
+				inputs[9 + i] = map(w.h, 0, height, 0, 1);
 			}
 
 			// Get the outputs from the network
@@ -385,23 +379,23 @@ public class SmartRockets extends Game2D {
 		@SuppressWarnings("unused")
 		public Wall() {
 			this(
-					Utils.random(0, width),
-					Utils.random(0, height),
-					Utils.random(width / 8F, width - width / 8F),
-					Utils.random(height / 32F, height / 16F));
+					random(0, width),
+					random(0, height),
+					random(width / 8F, width - width / 8F),
+					random(height / 32F, height / 16F));
 
 		}
 
 		public Wall(float x, float y, float w, float h) {
-			this.x = Utils.clamp(0, x, width - w);
-			this.y = Utils.clamp(0, y, height - h);
+			this.x = clamp(0, x, width - w);
+			this.y = clamp(0, y, height - h);
 			this.w = w;
 			this.h = h;
 		}
 
 		// Did this wall hit a Rocket?
 		public boolean hits(Rocket rocket) {
-			return Utils.hitLineBox(rocket.x, rocket.y, rocket.x2(), rocket.y2(), x, y, w, h);
+			return hitLineBox(rocket.x, rocket.y, rocket.x2(), rocket.y2(), x, y, w, h);
 		}
 
 		// Draw the wall

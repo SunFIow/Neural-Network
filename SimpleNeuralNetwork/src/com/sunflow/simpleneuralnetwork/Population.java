@@ -2,9 +2,9 @@ package com.sunflow.simpleneuralnetwork;
 
 import java.util.ArrayList;
 
-import com.sunflow.util.Utils;
+import com.sunflow.util.GameUtils;
 
-public abstract class Population<Type extends Creature<Type>> {
+public class Population<Type extends Creature<Type>> implements GameUtils {
 
 	public int totalPopulation;
 	private int totalPopulationOnLoaded;
@@ -16,9 +16,14 @@ public abstract class Population<Type extends Creature<Type>> {
 	private Type bestCreature;
 	public int generation = 1;
 
-	public Population(int totalPopulation) {
+	private MethodNewCreature<Type> newCreatureM;
+	@SuppressWarnings("unused")
+	private MethodReset resetM;
+
+	public Population(int totalPopulation, MethodNewCreature<Type> nC) {
 		this.totalPopulation = totalPopulation;
 		this.totalPopulationOnLoaded = totalPopulation;
+		this.newCreatureM = nC;
 
 		activeCreatures = new ArrayList<>();
 		allCreatures = new ArrayList<>();
@@ -31,7 +36,26 @@ public abstract class Population<Type extends Creature<Type>> {
 		}
 	}
 
-	protected abstract Type getCreature();
+	public Population(int total, MethodNewCreature<Type> nC, MethodReset resetM) {
+		this(total, nC);
+		this.resetM = resetM;
+	}
+
+	public static interface MethodNewCreature<Type> {
+		Type invoke();
+	}
+
+	public static interface MethodReset {
+		void invoke();
+	}
+
+	protected Type getCreature() {
+		return newCreatureM.invoke();
+	}
+
+//	protected Type getCreature() {
+//		return null;
+//	}
 
 	@SuppressWarnings("unchecked")
 	public void nextGeneration() {
@@ -80,7 +104,7 @@ public abstract class Population<Type extends Creature<Type>> {
 		int index = 0;
 
 		// Pick a random number between 0 and 1
-		double r = Utils.random(1.0D);
+		double r = random(1.0D);
 
 		// Keep subtracting probabilities until you get less than zero
 		// Higher probabilities will be more likely to be fixed since they will

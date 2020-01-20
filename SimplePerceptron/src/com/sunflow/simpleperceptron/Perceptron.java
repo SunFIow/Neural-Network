@@ -1,8 +1,8 @@
 package com.sunflow.simpleperceptron;
 
-import com.sunflow.util.Utils;
+import com.sunflow.util.GameUtils;
 
-public class Perceptron {
+public class Perceptron implements GameUtils {
 	private float[] weights;
 	// The learing rate
 	private float lr = 0.003F;
@@ -12,7 +12,7 @@ public class Perceptron {
 		// Initialize the weights randomly
 		weights = new float[n];
 		for (int i = 0; i < weights.length; i++) {
-			weights[i] = Utils.random(-1, 1);
+			weights[i] = random(-1, 1);
 		}
 	}
 

@@ -9,7 +9,6 @@ import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.Population;
 import com.sunflow.util.Constants;
 import com.sunflow.util.Log;
-import com.sunflow.util.Utils;
 
 public class TwoThousandFortyEight extends Game2D {
 	public static void main(String[] args) {
@@ -21,7 +20,7 @@ public class TwoThousandFortyEight extends Game2D {
 	private static int hidden_length = 10;
 
 	// All time high score
-	private double highScore;
+//	private double highScore;
 
 	// Game ticks per draw
 	private int cycles;
@@ -35,7 +34,7 @@ public class TwoThousandFortyEight extends Game2D {
 	private boolean swiping;
 	ArrayList<Field[]> swipePairs = new ArrayList<>();
 
-	private String best2048File = "rec/best2048Brain";
+//	private String best2048File = "rec/best2048Brain";
 
 	private Population<TTFEBrain> population;
 
@@ -60,7 +59,7 @@ public class TwoThousandFortyEight extends Game2D {
 		smooth();
 		frameRate(60);
 
-		highScore = 0;
+//		highScore = 0;
 		cycles = 1;
 		swiping = false;
 		simulate = false;
@@ -84,12 +83,7 @@ public class TwoThousandFortyEight extends Game2D {
 //			models[i] = new TTFEBrain();
 //		}
 
-		population = new Population<TTFEBrain>(50) {
-			@Override
-			protected TTFEBrain getCreature() {
-				return new TTFEBrain();
-			}
-		};
+		population = new Population<TTFEBrain>(50, TTFEBrain::new);
 
 		model = population.get(modelIndex++);
 
@@ -104,7 +98,7 @@ public class TwoThousandFortyEight extends Game2D {
 			do {
 				c++;
 				if (c > 100000) throw new Exception("Cant create new Value");
-				i = Utils.random(15);
+				i = random(15);
 				x = i % size;
 				y = i / size;
 			} while (fields[x][y].value != 0);
@@ -163,7 +157,7 @@ public class TwoThousandFortyEight extends Game2D {
 				for (int i = swipePairs.size() - 1; i >= 0; i--) {
 					Field[] pair = swipePairs.get(i);
 					Field p1 = pair[0];
-					Field p2 = pair[1];
+//					Field p2 = pair[1];
 					p1.update();
 					if (!p1.swiping) {
 //					p2.value += p1.value;
@@ -605,7 +599,7 @@ public class TwoThousandFortyEight extends Game2D {
 		}
 
 		@Override
-		public void update() {}
+		public void update(double dt) {}
 
 		@Override
 		protected double calcScore() {

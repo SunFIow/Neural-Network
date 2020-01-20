@@ -11,8 +11,6 @@ import com.sunflow.simpleneuralnetwork.Creature;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.Population;
 import com.sunflow.util.Log;
-import com.sunflow.util.Utils;
-import com.sunflow.util.Utils.Pair;
 
 public class EvolutionarySteeringBehaviors extends Game2D {
 	public static void main(String[] args) {
@@ -49,24 +47,19 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 		highScore = 0;
 		cycles = 1;
 
-		population = new Population<Vehicle>(popSize) {
-			@Override
-			protected Vehicle getCreature() {
-				return new Vehicle();
-			}
-		};
+		population = new Population<Vehicle>(popSize, Vehicle::new);
 
 		food = new ArrayList<>();
 		for (int i = 0; i < maxFood / 3; i++) {
-			float x = Utils.random(widthF);
-			float y = Utils.random(heightF);
+			float x = random(widthF);
+			float y = random(heightF);
 			food.add(new Vertex2F(x, y));
 		}
 
 		poison = new ArrayList<>();
 		for (int i = 0; i < maxPoison; i++) {
-			float x = Utils.random(widthF);
-			float y = Utils.random(heightF);
+			float x = random(widthF);
+			float y = random(heightF);
 			poison.add(new Vertex2F(x, y));
 		}
 	}
@@ -78,15 +71,15 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 
 		food = new ArrayList<>();
 		for (int i = 0; i < maxFood / 3; i++) {
-			float x = Utils.random(widthF);
-			float y = Utils.random(heightF);
+			float x = random(widthF);
+			float y = random(heightF);
 			food.add(new Vertex2F(x, y));
 		}
 
 		poison = new ArrayList<>();
 		for (int i = 0; i < maxPoison; i++) {
-			float x = Utils.random(widthF);
-			float y = Utils.random(heightF);
+			float x = random(widthF);
+			float y = random(heightF);
 			poison.add(new Vertex2F(x, y));
 		}
 
@@ -120,14 +113,14 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 			}
 
 			if (Math.random() < (float) (maxFood - poison.size()) / maxFood * foodRate) {
-				float x = Utils.random(widthF);
-				float y = Utils.random(heightF);
+				float x = random(widthF);
+				float y = random(heightF);
 				food.add(new Vertex2F(x, y));
 			}
 
 			if (Math.random() < (float) (maxPoison - poison.size()) / maxPoison * poisonRate) {
-				float x = Utils.random(widthF);
-				float y = Utils.random(heightF);
+				float x = random(widthF);
+				float y = random(heightF);
 				poison.add(new Vertex2F(x, y));
 			}
 
@@ -242,7 +235,7 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 		protected Mapper mutate = new Mapper() {
 			@Override
 			public double func(double x, int i, int j) {
-				if (Utils.random(1.0) < 0.01) {
+				if (random(1.0) < 0.01) {
 					double offset = new Random().nextGaussian() * 0.25;
 					double newx = x + offset;
 					return newx;
@@ -267,8 +260,8 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 		public Vehicle() {
 			super(inputs_length, outputs_length, hidden_length);
 			// position and size of Rocket
-			float x = Utils.random(widthF);
-			float y = Utils.random(heightF);
+			float x = random(widthF);
+			float y = random(heightF);
 
 			pos = new Vertex2F(x, y);
 			velocity = Vertex2F.fromAngle(-1 * Math.random() * Math.PI, null);
@@ -277,8 +270,8 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 			r = 8F;
 			health = 1;
 
-			visionFood = Utils.random(10, 400);
-			visionPoison = Utils.random(10, 400);
+			visionFood = random(10, 400);
+			visionPoison = random(10, 400);
 		}
 
 		public Vehicle(NeuralNetwork brain) {
@@ -304,8 +297,8 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 			Vehicle copy = clone();
 			copy.brain().mutate(mutate);
 //			copy.pos = pos.clone();
-			copy.visionFood = (float) (Utils.random(1.0) < 0.1 ? mutate.func(visionFood, 0, 0) : visionFood);
-			copy.visionPoison = (float) (Utils.random(1.0) < 0.1 ? mutate.func(visionPoison, 0, 0) : visionPoison);
+			copy.visionFood = (float) (random(1.0) < 0.1 ? mutate.func(visionFood, 0, 0) : visionFood);
+			copy.visionPoison = (float) (random(1.0) < 0.1 ? mutate.func(visionPoison, 0, 0) : visionPoison);
 			return copy;
 		}
 
@@ -320,7 +313,7 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 		}
 
 		@Override
-		public void update() {
+		public void update(double dt) {
 			velocity.add(acceleration).limit(5);
 			pos.add(velocity);
 			acceleration.mult(0);
@@ -352,28 +345,28 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 			// Now create the inputs to the neural network
 			double[] inputs = new double[inputs_length];
 
-			Pair<Vertex2F, Float> closestFood = Utils.getClosest(pos, food.toArray(new Vertex2F[0]));
-			Pair<Vertex2F, Float> closestPoison = Utils.getClosest(pos, poison.toArray(new Vertex2F[0]));
+			Pair<Vertex2F, Float> closestFood = getClosest(pos, food.toArray(new Vertex2F[0]));
+			Pair<Vertex2F, Float> closestPoison = getClosest(pos, poison.toArray(new Vertex2F[0]));
 
 			// x position the vehicle
-			inputs[0] = Utils.map(pos.x, 0, widthF, 0, 1);
+			inputs[0] = map(pos.x, 0, widthF, 0, 1);
 			// y position the vehicle
-			inputs[1] = Utils.map(pos.y, 0, heightF, 0, 1);
+			inputs[1] = map(pos.y, 0, heightF, 0, 1);
 			// velocity x the vehicle
-			inputs[2] = Utils.map(velocity.x, -5, 5, 0, 1);
+			inputs[2] = map(velocity.x, -5, 5, 0, 1);
 			// velocity y the vehicle
-			inputs[3] = Utils.map(velocity.y, -5, 5, 0, 1);
+			inputs[3] = map(velocity.y, -5, 5, 0, 1);
 			if (closestFood.a != null) {
 				// x position the closest food
-				inputs[4] = Utils.map(closestFood.a.x, 0, widthF, 0, 1);
+				inputs[4] = map(closestFood.a.x, 0, widthF, 0, 1);
 				// y position the closest food
-				inputs[5] = Utils.map(closestFood.a.y, 0, heightF, 0, 1);
+				inputs[5] = map(closestFood.a.y, 0, heightF, 0, 1);
 			}
 			if (closestPoison.a != null) {
 				// x position the closest poison
-				inputs[6] = Utils.map(closestPoison.a.x, 0, widthF, 0, 1);
+				inputs[6] = map(closestPoison.a.x, 0, widthF, 0, 1);
 				// y position the closest poison
-				inputs[7] = Utils.map(closestPoison.a.y, 0, heightF, 0, 1);
+				inputs[7] = map(closestPoison.a.y, 0, heightF, 0, 1);
 			}
 			// health of the vehicle
 			inputs[8] = health;

@@ -1,24 +1,28 @@
 package com.sunflow.simpleperceptron.training;
 
 import com.sunflow.game.GameBase;
-import com.sunflow.util.Utils;
+import com.sunflow.util.GameUtils;
+import com.sunflow.util.StaticUtils;
 
-public class Point {
+public class Point implements GameUtils {
 	public static float f(float x) {
 		// y = mx + b
 		return 0.3F * x + 0.2F;
 //		return x;
 	}
 
+	private GameBase game;
+
 	public float x;
 	public float y;
 	public int label;
 
-	public Point() {
-		this(Utils.random(-1F, 1F), Utils.random(-1F, 1F));
+	public Point(GameBase game) {
+		this(game, StaticUtils.random(-1F, 1F), StaticUtils.random(-1F, 1F));
 	}
 
-	public Point(float x, float y) {
+	public Point(GameBase game, float x, float y) {
+		this.game = game;
 		this.x = x;
 		this.y = y;
 		if (y > f(x)) {
@@ -29,11 +33,11 @@ public class Point {
 	}
 
 	public float pX() {
-		return Utils.map(this.x, -1, 1, 0, GameBase.get().width);
+		return map(this.x, -1, 1, 0, game.width);
 	}
 
 	public float pY() {
-		return Utils.map(this.y, -1, 1, GameBase.get().height, 0);
+		return map(this.y, -1, 1, game.height, 0);
 	}
 
 	public void show(GameBase game) {

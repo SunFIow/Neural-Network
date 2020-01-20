@@ -24,7 +24,7 @@ public class SimplePerceptron extends Game2D {
 		brain = new Perceptron(3);
 
 		for (int i = 0; i < points.length; i++) {
-			points[i] = new Point();
+			points[i] = new Point(this);
 		}
 
 		float[] inputs = { -1, 0.5F, 1 };
@@ -33,7 +33,7 @@ public class SimplePerceptron extends Game2D {
 	}
 
 	@Override
-	protected void tick(double multiplier) {
+	protected void update(double multiplier) {
 		for (int i = 0; i < 5; i++) {
 			Point p = points[++trainingIndex == points.length ? trainingIndex = 0 : trainingIndex];
 			float[] inputs = { p.x, p.y, 1 };
@@ -64,13 +64,13 @@ public class SimplePerceptron extends Game2D {
 
 		strokeWeight(3);
 		stroke(0, 0, 255);
-		Point p1 = new Point(-1, Point.f(-1));
-		Point p2 = new Point(1, Point.f(1));
+		Point p1 = new Point(this, -1, Point.f(-1));
+		Point p2 = new Point(this, 1, Point.f(1));
 		line(p1.pX(), p1.pY(), p2.pX(), p2.pY());
 
 		stroke(255, 0, 200);
-		Point bp1 = new Point(-1, brain.guessY(-1));
-		Point bp2 = new Point(1, brain.guessY(1));
+		Point bp1 = new Point(this, -1, brain.guessY(-1));
+		Point bp2 = new Point(this, 1, brain.guessY(1));
 		line(bp1.pX(), bp1.pY(), bp2.pX(), bp2.pY());
 	}
 }

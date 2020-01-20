@@ -2,10 +2,10 @@ package com.sunflow.simpleneuralnetwork;
 
 import com.sunflow.math3d.MatrixD;
 import com.sunflow.math3d.MatrixD.Mapper;
+import com.sunflow.util.GameUtils;
 import com.sunflow.util.Log;
-import com.sunflow.util.Utils;
 
-public class NeuralNetwork implements NN {
+public class NeuralNetwork implements NN, GameUtils {
 	public static ActivationFunction sigmoid = new ActivationFunction(
 			(x, i, j) -> (1 / (1 + Math.exp(-x))),
 			(y, i, j) -> y * (1 - y));
@@ -46,9 +46,7 @@ public class NeuralNetwork implements NN {
 		this.setActivationFunction(sigmoid);
 	}
 
-	public float[] predict(float[] inputs_array) {
-		return Utils.fromArray(Utils.fromArray(inputs_array));
-	}
+	public float[] predict(float[] inputs_array) { return convertArray(predict(convertArray(inputs_array))); }
 
 	@Override
 	public double[] predict(double[] inputs_array) {
@@ -71,18 +69,12 @@ public class NeuralNetwork implements NN {
 	}
 
 	@Override
-	public void setLearningRate(double learning_rate) {
-		this.learning_rate = learning_rate;
-	}
+	public void setLearningRate(double learning_rate) { this.learning_rate = learning_rate; }
 
 	@Override
-	public void setActivationFunction(ActivationFunction func) {
-		this.activation_function = func;
-	}
+	public void setActivationFunction(ActivationFunction func) { this.activation_function = func; }
 
-	public float[] train(float[] inputs_array) {
-		return Utils.fromArray(Utils.fromArray(inputs_array));
-	}
+	public void train(float[] inputs_array, float[] targets_array) { train(convertArray(inputs_array), convertArray(targets_array)); }
 
 	@Override
 	public void train(double[] inputs_array, double[] targets_array) {
