@@ -3,12 +3,12 @@ package com.sunflow.examples.genetic;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
-import com.sunflow.game.Game2D;
+import com.sunflow.game.Game2DAsynchron;
 import com.sunflow.simpleneuralnetwork.Creature;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.Population;
 
-public class TRexRunner extends Game2D {
+public class TRexRunner extends Game2DAsynchron {
 	public static void main(String[] args) {
 		new TRexRunner();
 	}
@@ -43,7 +43,7 @@ public class TRexRunner extends Game2D {
 		bestScore = 0;
 		humanPlay = false;
 
-		groundY = heightF - 20;
+		groundY = height - 20;
 		rex = new TRex();
 		cacti = new ArrayList<>();
 		population = new Population<TRex>(50, TRex::new);
@@ -136,7 +136,7 @@ public class TRexRunner extends Game2D {
 
 		stroke(0);
 		strokeWeight(3);
-		line(0, groundY, widthF, groundY);
+		line(0, groundY, width, groundY);
 
 		@SuppressWarnings("unchecked")
 		ArrayList<Cactus> cacti = (ArrayList<Cactus>) this.cacti.clone();
@@ -410,7 +410,7 @@ public class TRexRunner extends Game2D {
 		private float y;
 
 		private Cactus() {
-			x = widthF + 50;
+			x = width + 50;
 			y = groundY - h;
 		}
 

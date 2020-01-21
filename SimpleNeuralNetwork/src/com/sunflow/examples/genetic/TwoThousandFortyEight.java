@@ -3,14 +3,14 @@ package com.sunflow.examples.genetic;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
-import com.sunflow.game.Game2D;
+import com.sunflow.game.Game2DAsynchron;
 import com.sunflow.simpleneuralnetwork.Creature;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.Population;
 import com.sunflow.util.Constants;
 import com.sunflow.util.Log;
 
-public class TwoThousandFortyEight extends Game2D {
+public class TwoThousandFortyEight extends Game2DAsynchron {
 	public static void main(String[] args) {
 		new TwoThousandFortyEight();
 	}
@@ -185,8 +185,8 @@ public class TwoThousandFortyEight extends Game2D {
 	protected void draw() {
 		logic();
 		background(25);
-		fW = widthF / size;
-		fH = heightF / size;
+		fW = width / size;
+		fH = height / size;
 		// Draw everything!
 		textAlign(Constants.CENTER, Constants.CENTER);
 		textSize(32);
@@ -217,11 +217,11 @@ public class TwoThousandFortyEight extends Game2D {
 		fill(255, 0, 0, 100);
 		stroke(0, 0, 0, 50);
 		strokeWeight(4);
-		textO("Generation: " + population.generation(), widthF - 140, 16);
-		textO("Cycles: " + cycles, widthF - 140, 32);
-		textO("ModelIndex: " + modelIndex, widthF - 140, 48);
-		textO("HighScore: " + bestModelScore, widthF - 140, 64);
-		text((simulate ? "" : "not") + " simulating", widthF - 140, 80);
+		textO("Generation: " + population.generation(), width - 140, 16);
+		textO("Cycles: " + cycles, width - 140, 32);
+		textO("ModelIndex: " + modelIndex, width - 140, 48);
+		textO("HighScore: " + bestModelScore, width - 140, 64);
+		text((simulate ? "" : "not") + " simulating", width - 140, 80);
 	}
 
 	/**

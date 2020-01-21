@@ -1,8 +1,8 @@
 package com.sunflow.simpleperceptron;
 
-import com.sunflow.util.GameUtils;
+import com.sunflow.util.MathUtils;
 
-public class Perceptron implements GameUtils {
+public class Perceptron implements MathUtils {
 	private float[] weights;
 	// The learing rate
 	private float lr = 0.003F;

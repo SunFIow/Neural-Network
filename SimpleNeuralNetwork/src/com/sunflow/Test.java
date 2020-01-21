@@ -2,10 +2,10 @@ package com.sunflow;
 
 import java.awt.Graphics2D;
 
-import com.sunflow.game.Game2D;
+import com.sunflow.game.Game2DAsynchron;
 import com.sunflow.util.Constants;
 
-public class Test extends Game2D {
+public class Test extends Game2DAsynchron {
 	public static void main(String[] args) {
 		new Test();
 	}

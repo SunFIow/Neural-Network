@@ -6,7 +6,7 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Random;
 
-import com.sunflow.game.Game2D;
+import com.sunflow.game.Game2DAsynchron;
 import com.sunflow.math.Vertex2D;
 import com.sunflow.math3d.MatrixD.Mapper;
 import com.sunflow.simpleneuralnetwork.Creature;
@@ -14,7 +14,7 @@ import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.Population;
 import com.sunflow.util.Log;
 
-public class SmartRockets extends Game2D {
+public class SmartRockets extends Game2DAsynchron {
 	public static void main(String[] args) {
 		new SmartRockets();
 	}

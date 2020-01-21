@@ -2,11 +2,11 @@ package com.sunflow.examples.supervised;
 
 import java.awt.Graphics2D;
 
-import com.sunflow.game.Game2D;
+import com.sunflow.game.Game2DAsynchron;
 import com.sunflow.simpleneuralnetwork.NN;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 
-public class Xor extends Game2D {
+public class Xor extends Game2DAsynchron {
 	public static void main(String[] args) {
 		new Xor();
 	}

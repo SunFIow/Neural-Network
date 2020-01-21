@@ -5,11 +5,11 @@ import java.awt.event.MouseEvent;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import com.sunflow.game.Game2D;
+import com.sunflow.game.Game2DAsynchron;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.util.Constants;
 
-public class ColorPredictor extends Game2D implements Serializable {
+public class ColorPredictor extends Game2DAsynchron implements Serializable {
 	public static void main(String[] args) {
 		new ColorPredictor();
 	}

@@ -1,10 +1,10 @@
 package com.sunflow.simpleperceptron;
 
-import com.sunflow.game.Game2D;
+import com.sunflow.game.Game2DAsynchron;
 import com.sunflow.simpleperceptron.training.Point;
 import com.sunflow.util.Log;
 
-public class SimplePerceptron extends Game2D {
+public class SimplePerceptron extends Game2DAsynchron {
 
 	public static void main(String[] args) {
 		new SimplePerceptron();

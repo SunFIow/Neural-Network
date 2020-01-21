@@ -4,7 +4,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Random;
 
-import com.sunflow.game.Game2D;
+import com.sunflow.game.Game2DAsynchron;
 import com.sunflow.math.Vertex2F;
 import com.sunflow.math3d.MatrixD.Mapper;
 import com.sunflow.simpleneuralnetwork.Creature;
@@ -12,7 +12,7 @@ import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.Population;
 import com.sunflow.util.Log;
 
-public class EvolutionarySteeringBehaviors extends Game2D {
+public class EvolutionarySteeringBehaviors extends Game2DAsynchron {
 	public static void main(String[] args) {
 		new EvolutionarySteeringBehaviors();
 	}
@@ -51,15 +51,15 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 
 		food = new ArrayList<>();
 		for (int i = 0; i < maxFood / 3; i++) {
-			float x = random(widthF);
-			float y = random(heightF);
+			float x = random(width);
+			float y = random(height);
 			food.add(new Vertex2F(x, y));
 		}
 
 		poison = new ArrayList<>();
 		for (int i = 0; i < maxPoison; i++) {
-			float x = random(widthF);
-			float y = random(heightF);
+			float x = random(width);
+			float y = random(height);
 			poison.add(new Vertex2F(x, y));
 		}
 	}
@@ -71,15 +71,15 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 
 		food = new ArrayList<>();
 		for (int i = 0; i < maxFood / 3; i++) {
-			float x = random(widthF);
-			float y = random(heightF);
+			float x = random(width);
+			float y = random(height);
 			food.add(new Vertex2F(x, y));
 		}
 
 		poison = new ArrayList<>();
 		for (int i = 0; i < maxPoison; i++) {
-			float x = random(widthF);
-			float y = random(heightF);
+			float x = random(width);
+			float y = random(height);
 			poison.add(new Vertex2F(x, y));
 		}
 
@@ -113,14 +113,14 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 			}
 
 			if (Math.random() < (float) (maxFood - poison.size()) / maxFood * foodRate) {
-				float x = random(widthF);
-				float y = random(heightF);
+				float x = random(width);
+				float y = random(height);
 				food.add(new Vertex2F(x, y));
 			}
 
 			if (Math.random() < (float) (maxPoison - poison.size()) / maxPoison * poisonRate) {
-				float x = random(widthF);
-				float y = random(heightF);
+				float x = random(width);
+				float y = random(height);
 				poison.add(new Vertex2F(x, y));
 			}
 
@@ -260,8 +260,8 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 		public Vehicle() {
 			super(inputs_length, outputs_length, hidden_length);
 			// position and size of Rocket
-			float x = random(widthF);
-			float y = random(heightF);
+			float x = random(width);
+			float y = random(height);
 
 			pos = new Vertex2F(x, y);
 			velocity = Vertex2F.fromAngle(-1 * Math.random() * Math.PI, null);
@@ -323,7 +323,7 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 		}
 
 		public boolean offScreen() {
-			return (pos.x < 0 || pos.y < 0 || pos.x > widthF || pos.y > heightF);
+			return (pos.x < 0 || pos.y < 0 || pos.x > width || pos.y > height);
 		}
 
 		public boolean isAlive() {
@@ -349,24 +349,24 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 			Pair<Vertex2F, Float> closestPoison = getClosest(pos, poison.toArray(new Vertex2F[0]));
 
 			// x position the vehicle
-			inputs[0] = map(pos.x, 0, widthF, 0, 1);
+			inputs[0] = map(pos.x, 0, width, 0, 1);
 			// y position the vehicle
-			inputs[1] = map(pos.y, 0, heightF, 0, 1);
+			inputs[1] = map(pos.y, 0, height, 0, 1);
 			// velocity x the vehicle
 			inputs[2] = map(velocity.x, -5, 5, 0, 1);
 			// velocity y the vehicle
 			inputs[3] = map(velocity.y, -5, 5, 0, 1);
 			if (closestFood.a != null) {
 				// x position the closest food
-				inputs[4] = map(closestFood.a.x, 0, widthF, 0, 1);
+				inputs[4] = map(closestFood.a.x, 0, width, 0, 1);
 				// y position the closest food
-				inputs[5] = map(closestFood.a.y, 0, heightF, 0, 1);
+				inputs[5] = map(closestFood.a.y, 0, height, 0, 1);
 			}
 			if (closestPoison.a != null) {
 				// x position the closest poison
-				inputs[6] = map(closestPoison.a.x, 0, widthF, 0, 1);
+				inputs[6] = map(closestPoison.a.x, 0, width, 0, 1);
 				// y position the closest poison
-				inputs[7] = map(closestPoison.a.y, 0, heightF, 0, 1);
+				inputs[7] = map(closestPoison.a.y, 0, height, 0, 1);
 			}
 			// health of the vehicle
 			inputs[8] = health;

@@ -1,10 +1,10 @@
 package com.sunflow.examples.supervised;
 
-import com.sunflow.game.Game2D;
+import com.sunflow.game.Game2DAsynchron;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.util.Log;
 
-public class SimpleNeuralNetwork extends Game2D {
+public class SimpleNeuralNetwork extends Game2DAsynchron {
 	public static void main(String[] args) {
 		new SimpleNeuralNetwork();
 	}

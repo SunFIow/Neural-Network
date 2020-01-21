@@ -2,9 +2,9 @@ package com.sunflow.simpleneuralnetwork;
 
 import java.util.ArrayList;
 
-import com.sunflow.util.GameUtils;
+import com.sunflow.util.MathUtils;
 
-public class Population<Type extends Creature<Type>> implements GameUtils {
+public class Population<Type extends Creature<Type>> implements MathUtils {
 
 	public int totalPopulation;
 	private int totalPopulationOnLoaded;

@@ -3,9 +3,9 @@ package com.sunflow.simpleneuralnetwork;
 import java.util.Random;
 
 import com.sunflow.math3d.MatrixD.Mapper;
-import com.sunflow.util.GameUtils;
+import com.sunflow.util.MathUtils;
 
-public abstract class Creature<Type> implements Cloneable, GameUtils {
+public abstract class Creature<Type> implements Cloneable, MathUtils {
 	protected Mapper mutate = (x, i, j) -> {
 		if (random(1.0D) < 0.01D) {
 			double offset = new Random().nextGaussian() * 0.25D;

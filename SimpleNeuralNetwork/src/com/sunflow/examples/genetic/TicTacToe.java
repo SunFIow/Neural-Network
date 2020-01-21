@@ -5,10 +5,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
-import com.sunflow.game.Game2D;
+import com.sunflow.game.Game2DAsynchron;
 import com.sunflow.util.Log;
 
-public class TicTacToe extends Game2D {
+public class TicTacToe extends Game2DAsynchron {
 
 	public static void main(String[] args) {
 		new TicTacToe();
@@ -30,7 +30,7 @@ public class TicTacToe extends Game2D {
 		frameRate(60);
 
 		textAlign(CENTER, CENTER);
-		textSize(widthF / 3);
+		textSize(width / 3);
 
 		board = new char[3][3];
 		avaiableSpots = new ArrayList<>();
@@ -52,15 +52,15 @@ public class TicTacToe extends Game2D {
 		background(200);
 		strokeWeight(4);
 
-		line(widthF / 3, 0, widthF / 3, height);
-		line(widthF / 3 * 2, 0, widthF / 3 * 2, height);
+		line(width / 3, 0, width / 3, height);
+		line(width / 3 * 2, 0, width / 3 * 2, height);
 
-		line(0, heightF / 3, widthF, heightF / 3);
-		line(0, heightF / 3 * 2, widthF, heightF / 3 * 2);
+		line(0, height / 3, width, height / 3);
+		line(0, height / 3 * 2, width, height / 3 * 2);
 
 		for (int x = 0; x < 3; x++) {
 			for (int y = 0; y < 3; y++) {
-				text("" + board[x][y], widthF / 6 + (widthF / 3 * x), heightF / 6 + (heightF / 3 * y));
+				text("" + board[x][y], width / 6 + (width / 3 * x), height / 6 + (height / 3 * y));
 			}
 		}
 	}

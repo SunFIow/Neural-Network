@@ -3,13 +3,13 @@ package com.sunflow.examples.genetic;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
-import com.sunflow.game.Game2D;
+import com.sunflow.game.Game2DAsynchron;
 import com.sunflow.simpleneuralnetwork.Creature;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.Population;
 import com.sunflow.util.Log;
 
-public class FlappyBird extends Game2D {
+public class FlappyBird extends Game2DAsynchron {
 	public static void main(String[] args) {
 		new FlappyBird();
 	}
