@@ -1,6 +1,6 @@
 package com.sunflow.simpleperceptron.training;
 
-import com.sunflow.game.Game2DAsynchron;
+import com.sunflow.game.Game2D;
 import com.sunflow.util.MathUtils;
 import com.sunflow.util.StaticUtils;
 
@@ -11,17 +11,17 @@ public class Point implements MathUtils {
 //		return x;
 	}
 
-	private Game2DAsynchron game;
+	private Game2D game;
 
 	public float x;
 	public float y;
 	public int label;
 
-	public Point(Game2DAsynchron game) {
+	public Point(Game2D game) {
 		this(game, StaticUtils.instance.random(-1F, 1F), StaticUtils.instance.random(-1F, 1F));
 	}
 
-	public Point(Game2DAsynchron game, float x, float y) {
+	public Point(Game2D game, float x, float y) {
 		this.game = game;
 		this.x = x;
 		this.y = y;
@@ -40,7 +40,7 @@ public class Point implements MathUtils {
 		return map(this.y, -1, 1, game.height(), 0);
 	}
 
-	public void show(Game2DAsynchron game) {
+	public void show(Game2D game) {
 		if (label == 1) {
 			game.fill(255);
 		} else {

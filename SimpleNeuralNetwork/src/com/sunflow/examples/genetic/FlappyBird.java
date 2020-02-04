@@ -3,18 +3,18 @@ package com.sunflow.examples.genetic;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
-import com.sunflow.game.Game2DAsynchron;
+import com.sunflow.game.Game2D;
+import com.sunflow.logging.Log;
 import com.sunflow.simpleneuralnetwork.Creature;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.Population;
-import com.sunflow.util.Log;
 
-public class FlappyBird extends Game2DAsynchron {
+public class FlappyBird extends Game2D {
 	public static void main(String[] args) {
 		new FlappyBird();
 	}
 
-	private String bestBirdFile = "bestBirdBrain";
+	private String bestBirdFile = "rec/brains/bestBirdBrain";
 
 	// Pipes
 	private ArrayList<Pipe> pipes;
@@ -46,6 +46,7 @@ public class FlappyBird extends Game2DAsynchron {
 		createCanvas(600, 400);
 		smooth();
 		frameRate(60);
+		showInfo(true);
 
 		cycles = 1;
 		highScore = 0;
@@ -95,7 +96,7 @@ public class FlappyBird extends Game2DAsynchron {
 	}
 
 	@Override
-	protected void update(double dt) {
+	protected void update() {
 		// Should we speed up cycles per frame
 		int cycles = this.cycles; // speedSlider.value();
 //		speedSpan.html(cycles);

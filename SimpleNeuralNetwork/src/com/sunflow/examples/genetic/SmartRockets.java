@@ -6,20 +6,20 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Random;
 
-import com.sunflow.game.Game2DAsynchron;
+import com.sunflow.game.Game2D;
+import com.sunflow.logging.Log;
 import com.sunflow.math.Vertex2D;
 import com.sunflow.math3d.MatrixD.Mapper;
 import com.sunflow.simpleneuralnetwork.Creature;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.Population;
-import com.sunflow.util.Log;
 
-public class SmartRockets extends Game2DAsynchron {
+public class SmartRockets extends Game2D {
 	public static void main(String[] args) {
 		new SmartRockets();
 	}
 
-	private String bestRocketFile = "bestRocketBrain";
+	private String bestRocketFile = "rec/brains/bestRocketBrain";
 
 	public float goalR;
 	private Point2D.Float goal;
@@ -43,7 +43,7 @@ public class SmartRockets extends Game2DAsynchron {
 	@Override
 	protected void setup() {
 		createCanvas(1280, 800);
-//		smooth();
+		smooth();
 		frameRate(60);
 
 		lifespan = 200;

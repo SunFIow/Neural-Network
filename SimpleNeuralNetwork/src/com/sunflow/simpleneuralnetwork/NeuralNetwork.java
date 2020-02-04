@@ -1,11 +1,11 @@
 package com.sunflow.simpleneuralnetwork;
 
+import com.sunflow.logging.Log;
 import com.sunflow.math3d.MatrixD;
 import com.sunflow.math3d.MatrixD.Mapper;
-import com.sunflow.util.GameUtils;
-import com.sunflow.util.Log;
+import com.sunflow.util.StaticUtils;
 
-public class NeuralNetwork implements NN, GameUtils {
+public class NeuralNetwork implements NN {
 	public static ActivationFunction sigmoid = new ActivationFunction(
 			(x, i, j) -> (1 / (1 + Math.exp(-x))),
 			(y, i, j) -> y * (1 - y));
@@ -34,24 +34,32 @@ public class NeuralNetwork implements NN, GameUtils {
 
 		this.weights_ih = new MatrixD(nodes_hidden, nodes_inputs);
 		this.weights_ho = new MatrixD(nodes_outputs, nodes_hidden);
-		this.weights_ih.randomize();
-		this.weights_ho.randomize();
+//		this.weights_ih.randomize();
+//		this.weights_ho.randomize();
 
 		this.bias_h = new MatrixD(nodes_hidden, 1);
 		this.bias_o = new MatrixD(nodes_outputs, 1);
-		this.bias_h.randomize();
-		this.bias_o.randomize();
+//		this.bias_h.randomize();
+//		this.bias_o.randomize();
 
 		this.setLearningRate(0.1F);
 		this.setActivationFunction(sigmoid);
+		randomize();
 	}
 
-	public float[] predict(float[] inputs_array) { return convertArray(predict(convertArray(inputs_array))); }
+	public void randomize() {
+		this.weights_ih.randomize();
+		this.weights_ho.randomize();
+		this.bias_h.randomize();
+		this.bias_o.randomize();
+	}
+
+	public float[] predict(float[] inputs_array) { return StaticUtils.instance.convertArray(predict(StaticUtils.instance.convertArray(inputs_array))); }
 
 	@Override
 	public double[] predict(double[] inputs_array) {
 		if (inputs_array.length != nodes_inputs) {
-			Log.err("NeuralNetwork#predict: inputs and nn_inputs didnt match");
+			Log.error("NeuralNetwork#predict: inputs and nn_inputs didnt match");
 		}
 		MatrixD inputs = MatrixD.fromArray(inputs_array);
 		MatrixD outputs = predict(inputs);
@@ -74,15 +82,15 @@ public class NeuralNetwork implements NN, GameUtils {
 	@Override
 	public void setActivationFunction(ActivationFunction func) { this.activation_function = func; }
 
-	public void train(float[] inputs_array, float[] targets_array) { train(convertArray(inputs_array), convertArray(targets_array)); }
+	public void train(float[] inputs_array, float[] targets_array) { train(StaticUtils.instance.convertArray(inputs_array), StaticUtils.instance.convertArray(targets_array)); }
 
 	@Override
 	public void train(double[] inputs_array, double[] targets_array) {
 		if (inputs_array.length != nodes_inputs) {
-			Log.err("NeuralNetwork#train: input and nn_input didnt match");
+			Log.error("NeuralNetwork#train: input and nn_input didnt match");
 		}
 		if (targets_array.length != nodes_outputs) {
-			Log.err("NeuralNetwork#train: target and nn_output didnt match");
+			Log.error("NeuralNetwork#train: target and nn_output didnt match");
 		}
 		MatrixD inputs = MatrixD.fromArray(inputs_array);
 		MatrixD targets = MatrixD.fromArray(targets_array);

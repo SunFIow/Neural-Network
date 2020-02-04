@@ -4,20 +4,20 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Random;
 
-import com.sunflow.game.Game2DAsynchron;
+import com.sunflow.game.Game2D;
+import com.sunflow.logging.Log;
 import com.sunflow.math.Vertex2F;
 import com.sunflow.math3d.MatrixD.Mapper;
 import com.sunflow.simpleneuralnetwork.Creature;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.Population;
-import com.sunflow.util.Log;
 
-public class EvolutionarySteeringBehaviors extends Game2DAsynchron {
+public class EvolutionarySteeringBehaviors extends Game2D {
 	public static void main(String[] args) {
 		new EvolutionarySteeringBehaviors();
 	}
 
-	private String bestVehicleFile = "rec/bestVehicleBrain";
+	private String bestVehicleFile = "rec/brains/bestVehicleBrain";
 
 	// A frame counter to determine when to finish generation
 
@@ -101,7 +101,7 @@ public class EvolutionarySteeringBehaviors extends Game2DAsynchron {
 				vehicle.eat(poison, poisonNut);
 
 				if (!vehicle.offScreen() && Math.random() < babyRate) {
-					Log.err("Baby");
+					Log.error("Baby");
 					Vehicle v = vehicle.mutate();
 					v.pos = Vertex2F.add(vehicle.pos, Vertex2F.of((float) Math.random() * 6 - 4, (float) Math.random() * 6 - 4));
 					population.add(v);

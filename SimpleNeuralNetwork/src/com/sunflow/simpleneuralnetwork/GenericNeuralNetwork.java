@@ -1,8 +1,8 @@
 package com.sunflow.simpleneuralnetwork;
 
+import com.sunflow.logging.Log;
 import com.sunflow.math3d.MatrixD;
 import com.sunflow.math3d.MatrixD.Mapper;
-import com.sunflow.util.Log;
 
 public class GenericNeuralNetwork implements NN {
 	public ActivationFunction sigmoid = new ActivationFunction(
@@ -49,7 +49,7 @@ public class GenericNeuralNetwork implements NN {
 	@Override
 	public double[] predict(double[] inputs_array) {
 		if (inputs_array.length != nodes_inputs) {
-			Log.err("NeuralNetwork#predict: input and nn_input didnt match");
+			Log.error("NeuralNetwork#predict: input and nn_input didnt match");
 		}
 		MatrixD inputs = MatrixD.fromArray(inputs_array);
 		MatrixD outputs = predict(inputs);
@@ -80,10 +80,10 @@ public class GenericNeuralNetwork implements NN {
 	@Override
 	public void train(double[] inputs_array, double[] target_array) {
 		if (inputs_array.length != nodes_inputs) {
-			Log.err("NeuralNetwork#train: input and nn_input didnt match");
+			Log.error("NeuralNetwork#train: input and nn_input didnt match");
 		}
 		if (target_array.length != nodes_outputs) {
-			Log.err("NeuralNetwork#train: target and nn_output didnt match");
+			Log.error("NeuralNetwork#train: target and nn_output didnt match");
 		}
 		MatrixD inputs = MatrixD.fromArray(inputs_array);
 		MatrixD targets = MatrixD.fromArray(target_array);

@@ -1,10 +1,10 @@
 package com.sunflow.simpleperceptron;
 
-import com.sunflow.game.Game2DAsynchron;
+import com.sunflow.game.Game2D;
+import com.sunflow.logging.Log;
 import com.sunflow.simpleperceptron.training.Point;
-import com.sunflow.util.Log;
 
-public class SimplePerceptron extends Game2DAsynchron {
+public class SimplePerceptron extends Game2D {
 
 	public static void main(String[] args) {
 		new SimplePerceptron();
@@ -33,7 +33,7 @@ public class SimplePerceptron extends Game2DAsynchron {
 	}
 
 	@Override
-	protected void update(double multiplier) {
+	protected void update() {
 		for (int i = 0; i < 5; i++) {
 			Point p = points[++trainingIndex == points.length ? trainingIndex = 0 : trainingIndex];
 			float[] inputs = { p.x, p.y, 1 };

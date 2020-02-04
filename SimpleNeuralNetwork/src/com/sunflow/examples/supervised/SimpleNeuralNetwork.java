@@ -1,13 +1,11 @@
 package com.sunflow.examples.supervised;
 
-import com.sunflow.game.Game2DAsynchron;
+import com.sunflow.game.Game2D;
+import com.sunflow.logging.Log;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
-import com.sunflow.util.Log;
 
-public class SimpleNeuralNetwork extends Game2DAsynchron {
-	public static void main(String[] args) {
-		new SimpleNeuralNetwork();
-	}
+public class SimpleNeuralNetwork extends Game2D {
+	public static void main(String[] args) { new SimpleNeuralNetwork(); }
 
 	private NeuralNetwork brain;
 
@@ -27,10 +25,9 @@ public class SimpleNeuralNetwork extends Game2DAsynchron {
 			double[][] data = training_data[random(0, 3)];
 			brain.train(data[0], data[1]);
 		}
-		Log.info(brain.predict(training_data[0][0]));
-		Log.info(brain.predict(training_data[1][0]));
-		Log.info(brain.predict(training_data[2][0]));
-		Log.info(brain.predict(training_data[3][0]));
-
+		Log.info(brain.predict(training_data[0][0])[0]);
+		Log.info(brain.predict(training_data[1][0])[0]);
+		Log.info(brain.predict(training_data[2][0])[0]);
+		Log.info(brain.predict(training_data[3][0])[0]);
 	}
 }

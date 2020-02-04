@@ -3,17 +3,15 @@ package com.sunflow.examples.genetic;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
-import com.sunflow.game.Game2DAsynchron;
+import com.sunflow.game.Game2D;
+import com.sunflow.logging.Log;
 import com.sunflow.simpleneuralnetwork.Creature;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.Population;
 import com.sunflow.util.Constants;
-import com.sunflow.util.Log;
 
-public class TwoThousandFortyEight extends Game2DAsynchron {
-	public static void main(String[] args) {
-		new TwoThousandFortyEight();
-	}
+public class TwoThousandFortyEight extends Game2D {
+	public static void main(String[] args) { new TwoThousandFortyEight(); }
 
 	private static int inputs_length = 16 * 16;
 	private static int outputs_length = 4;
@@ -134,7 +132,7 @@ public class TwoThousandFortyEight extends Game2DAsynchron {
 		if (modelIndex == population.totalPopulation) {
 			if (genNext) {
 				// New Generation
-				Log.err("next Gen");
+				Log.error("next Gen");
 				modelIndex = 0;
 				population.setBestCreature(population.get(bestModel));
 				population.nextGeneration();
