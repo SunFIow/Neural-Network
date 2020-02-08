@@ -3,7 +3,6 @@ package com.sunflow.examples.supervised;
 import java.awt.Graphics2D;
 
 import com.sunflow.game.Game2D;
-import com.sunflow.simpleneuralnetwork.NN;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 
 public class Xor extends Game2D {
@@ -11,7 +10,7 @@ public class Xor extends Game2D {
 		new Xor();
 	}
 
-	private NN brain;
+	private NeuralNetwork brain;
 	double[][][] training_data;
 
 	private String predict00 = " ";

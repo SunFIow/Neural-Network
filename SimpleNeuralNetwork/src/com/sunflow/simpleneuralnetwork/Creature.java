@@ -2,14 +2,14 @@ package com.sunflow.simpleneuralnetwork;
 
 import java.util.Random;
 
-import com.sunflow.math3d.MatrixD.Mapper;
+import com.sunflow.util.Mapper;
 import com.sunflow.util.MathUtils;
 
 public abstract class Creature<Type> implements Cloneable, MathUtils {
 	protected Mapper mutate = (x, i, j) -> {
-		if (random(1.0D) < 0.01D) {
-			double offset = new Random().nextGaussian() * 0.25D;
-			double newx = x + offset;
+		if (random(1.0F) < 0.01F) {
+			float offset = (float) (new Random().nextGaussian() * 0.25F);
+			float newx = x + offset;
 			return newx;
 		} else {
 			return x;

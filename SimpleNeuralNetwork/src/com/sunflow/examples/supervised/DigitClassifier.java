@@ -144,6 +144,14 @@ public class DigitClassifier extends Game2D {
 				learning = !learning;
 				Log.debug("I am now " + (learning ? "" : "not ") + "learning!");
 				break;
+			case KeyEvent.VK_S:
+				serialize(bestDigitClassifier, brain);
+				Log.info("serialized");
+				break;
+			case KeyEvent.VK_L:
+				brain = (NeuralNetwork) deserialize(bestDigitClassifier);
+				Log.info("deserialized");
+				break;
 			default:
 				break;
 		}

@@ -4,12 +4,10 @@ import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.Random;
 
 import com.sunflow.game.Game2D;
 import com.sunflow.logging.Log;
 import com.sunflow.math.Vertex2D;
-import com.sunflow.math3d.MatrixD.Mapper;
 import com.sunflow.simpleneuralnetwork.Creature;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.Population;
@@ -215,19 +213,6 @@ public class SmartRockets extends Game2D {
 	private static int hidden_length = 20;
 
 	private class Rocket extends Creature<Rocket> {
-		protected Mapper mutate = new Mapper() {
-			@Override
-			public double func(double x, int i, int j) {
-				if (random(1.0D) < 0.01D) {
-					double offset = new Random().nextGaussian() * 0.25D;
-					double newx = x + offset;
-					return newx;
-				} else {
-					return x;
-				}
-			}
-		};
-
 		private float x;
 		private float y;
 		private float l;

@@ -7,10 +7,10 @@ import java.util.Random;
 import com.sunflow.game.Game2D;
 import com.sunflow.logging.Log;
 import com.sunflow.math.Vertex2F;
-import com.sunflow.math3d.MatrixD.Mapper;
 import com.sunflow.simpleneuralnetwork.Creature;
 import com.sunflow.simpleneuralnetwork.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.Population;
+import com.sunflow.util.Mapper;
 
 public class EvolutionarySteeringBehaviors extends Game2D {
 	public static void main(String[] args) {
@@ -234,14 +234,12 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 	private class Vehicle extends Creature<Vehicle> {
 		protected Mapper mutate = new Mapper() {
 			@Override
-			public double func(double x, int i, int j) {
-				if (random(1.0) < 0.01) {
-					double offset = new Random().nextGaussian() * 0.25;
-					double newx = x + offset;
+			public float func(float x, int i, int j) {
+				if (random(1.0f) < 0.01f) {
+					float offset = (float) new Random().nextGaussian() * 0.25f;
+					float newx = x + offset;
 					return newx;
-				} else {
-					return x;
-				}
+				} else return x;
 			}
 		};
 
@@ -297,8 +295,8 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 			Vehicle copy = clone();
 			copy.brain().mutate(mutate);
 //			copy.pos = pos.clone();
-			copy.visionFood = (float) (random(1.0) < 0.1 ? mutate.func(visionFood, 0, 0) : visionFood);
-			copy.visionPoison = (float) (random(1.0) < 0.1 ? mutate.func(visionPoison, 0, 0) : visionPoison);
+			copy.visionFood = random(1.0) < 0.1 ? mutate.func(visionFood, 0, 0) : visionFood;
+			copy.visionPoison = random(1.0) < 0.1 ? mutate.func(visionPoison, 0, 0) : visionPoison;
 			return copy;
 		}
 

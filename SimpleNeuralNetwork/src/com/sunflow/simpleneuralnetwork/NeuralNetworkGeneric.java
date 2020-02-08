@@ -7,7 +7,7 @@ import com.sunflow.math3d.MatrixF;
 import com.sunflow.util.Mapper;
 import com.sunflow.util.StaticUtils;
 
-public class NeuralNetwork implements Cloneable, Serializable {
+public class NeuralNetworkGeneric implements Cloneable, Serializable {
 	public static ActivationFunction sigmoid = new ActivationFunction(
 			x -> 1f / (1f + (float) Math.exp(-x)),
 			y -> y * (1 - y));
@@ -17,32 +17,33 @@ public class NeuralNetwork implements Cloneable, Serializable {
 			y -> 1f - y * y);
 
 	private int nodes_inputs;
-	private int nodes_hidden;
 	private int nodes_outputs;
+	private int[] nodes_hidden;
 
-	private MatrixF weights_ih;
-	private MatrixF weights_ho;
-
-	private MatrixF bias_h;
-	private MatrixF bias_o;
+	private MatrixF[] weights;
+	private MatrixF[] bias;
 
 	private float learning_rate;
 	private ActivationFunction activation_function;
 
-	public NeuralNetwork(int nodes_inputs, int nodes_outputs, int nodes_hidden) {
+	public NeuralNetworkGeneric(int nodes_inputs, int nodes_outputs, int... nodes_hidden) {
 		this.nodes_inputs = nodes_inputs;
 		this.nodes_outputs = nodes_outputs;
 		this.nodes_hidden = nodes_hidden;
 
-		this.weights_ih = new MatrixF(nodes_hidden, nodes_inputs);
-		this.weights_ho = new MatrixF(nodes_outputs, nodes_hidden);
-//		this.weights_ih.randomize();
-//		this.weights_ho.randomize();
+		this.weights = new MatrixF[nodes_hidden.length + 1];
+		this.bias = new MatrixF[nodes_hidden.length + 1];
 
-		this.bias_h = new MatrixF(nodes_hidden, 1);
-		this.bias_o = new MatrixF(nodes_outputs, 1);
-//		this.bias_h.randomize();
-//		this.bias_o.randomize();
+		for (int i = 0; i <= nodes_hidden.length; i++) {
+			int nodes_I = i == 0 ? nodes_inputs : nodes_hidden[i - 1];
+			int nodes_O = i == nodes_hidden.length ? nodes_outputs : nodes_hidden[i];
+
+			this.weights[i] = new MatrixF(nodes_O, nodes_I);
+//			this.weights[i].randomize();
+
+			this.bias[i] = new MatrixF(nodes_O, 1);
+//			this.bias[i].randomize();
+		}
 
 		this.setLearningRate(0.1F);
 		this.setActivationFunction(sigmoid);
@@ -50,10 +51,8 @@ public class NeuralNetwork implements Cloneable, Serializable {
 	}
 
 	public void randomize() {
-		this.weights_ih.randomize();
-		this.weights_ho.randomize();
-		this.bias_h.randomize();
-		this.bias_o.randomize();
+		for (MatrixF weight : weights) weight.randomize();
+		for (MatrixF bias : bias) bias.randomize();
 	}
 
 	public double[] predict(double[] inputs_array) {
@@ -62,7 +61,7 @@ public class NeuralNetwork implements Cloneable, Serializable {
 
 	public float[] predict(float[] inputs_array) {
 		if (inputs_array.length != nodes_inputs) {
-			Log.error("NeuralNetwork#predict: inputs and nn_inputs didnt match");
+			Log.error("NeuralNetwork#predict: input and nn_input didnt match");
 		}
 		MatrixF inputs = MatrixF.fromArray(inputs_array);
 		MatrixF outputs = predict(inputs);
@@ -70,10 +69,10 @@ public class NeuralNetwork implements Cloneable, Serializable {
 	}
 
 	public MatrixF predict(MatrixF inputs) {
-		// Generating the hidden outputs
-		MatrixF hidden = genLayer(weights_ih, inputs, bias_h);
-		// Generating the real outputs
-		MatrixF outputs = genLayer(weights_ho, hidden, bias_o);
+		// Generating the outputs
+		MatrixF outputs = inputs;
+		for (int i = 0; i <= nodes_hidden.length; i++)
+			outputs = genLayer(weights[i], outputs, bias[i]);
 		// Sending back to the caller!
 		return outputs;
 	}
@@ -88,34 +87,42 @@ public class NeuralNetwork implements Cloneable, Serializable {
 		train(StaticUtils.instance.convertArray(inputs_array), StaticUtils.instance.convertArray(target_array));
 	}
 
-	public void train(float[] inputs_array, float[] targets_array) {
+	public void train(float[] inputs_array, float[] target_array) {
 		if (inputs_array.length != nodes_inputs) {
 			Log.error("NeuralNetwork#train: input and nn_input didnt match");
 		}
-		if (targets_array.length != nodes_outputs) {
+		if (target_array.length != nodes_outputs) {
 			Log.error("NeuralNetwork#train: target and nn_output didnt match");
 		}
 		MatrixF inputs = MatrixF.fromArray(inputs_array);
-		MatrixF targets = MatrixF.fromArray(targets_array);
+		MatrixF targets = MatrixF.fromArray(target_array);
 		train(inputs, targets);
 	}
 
 	public void train(MatrixF inputs, MatrixF targets) {
-		// Generating the hidden outputs
-		MatrixF hidden = genLayer(weights_ih, inputs, bias_h);
-		// Generating the real outputs
-		MatrixF outputs = genLayer(weights_ho, hidden, bias_o);
+		MatrixF[] outputs = new MatrixF[nodes_hidden.length + 1];
+		for (int i = 0; i <= nodes_hidden.length; i++) {
+			outputs[i] = genLayer(weights[i], i == 0 ? inputs : outputs[i - 1], bias[i]);
+		}
 
-		// Calculate the output layer errors
-		// ERROR = TARGET - OUTPUT
-		MatrixF errors_o = MatrixF.substract(targets, outputs);
-		adjustLayer(errors_o, outputs, hidden, weights_ho, bias_o);
+		MatrixF errors_p = null;
+		for (int i = nodes_hidden.length; i >= 0; i--) {
+			MatrixF errors;
+			MatrixF layer = outputs[i];
+			MatrixF layer_p = i == 0 ? inputs : outputs[i - 1];
+			MatrixF weights = this.weights[i];
+			MatrixF bias = this.bias[i];
+			if (i == nodes_hidden.length) {
+				errors = MatrixF.substract(targets, outputs[nodes_hidden.length]);
+			} else {
+				MatrixF weights_p = this.weights[i + 1];
+				MatrixF weights_p_t = MatrixF.transpose(weights_p);
+				errors = MatrixF.dot(weights_p_t, errors_p);
+			}
+			errors_p = errors;
 
-		// Calculate the hidden layer errors
-		// ERROR = TARGET - OUTPUT
-		MatrixF weights_ho_t = MatrixF.transpose(weights_ho);
-		MatrixF errors_h = MatrixF.dot(weights_ho_t, errors_o);
-		adjustLayer(errors_h, hidden, inputs, weights_ih, bias_h);
+			adjustLayer(errors, layer, layer_p, weights, bias);
+		}
 	}
 
 	private MatrixF genLayer(MatrixF weights, MatrixF inputs, MatrixF bias) {
@@ -144,28 +151,24 @@ public class NeuralNetwork implements Cloneable, Serializable {
 	}
 
 	@Override
-	public NeuralNetwork clone() {
-		NeuralNetwork clone = new NeuralNetwork(nodes_inputs, nodes_outputs, nodes_hidden);
-		clone.nodes_inputs = this.nodes_inputs;
-		clone.nodes_outputs = this.nodes_outputs;
-		clone.nodes_hidden = this.nodes_hidden;
+	public NeuralNetworkGeneric clone() {
+		NeuralNetworkGeneric copy = new NeuralNetworkGeneric(nodes_inputs, nodes_outputs, nodes_hidden);
+		copy.nodes_inputs = this.nodes_inputs;
+		copy.nodes_outputs = this.nodes_outputs;
+		copy.nodes_hidden = this.nodes_hidden.clone();
 
-		clone.weights_ih = this.weights_ih.clone();
-		clone.weights_ho = this.weights_ho.clone();
+		copy.weights = this.weights.clone();
 
-		clone.bias_h = this.bias_h.clone();
-		clone.bias_o = this.bias_o.clone();
+		copy.bias = this.bias.clone();
 
-		clone.activation_function = this.activation_function.clone();
-		clone.learning_rate = this.learning_rate;
+		copy.activation_function = this.activation_function.clone();
+		copy.learning_rate = this.learning_rate;
 
-		return clone;
+		return copy;
 	}
 
 	public void mutate(Mapper func) {
-		weights_ih.map(func);
-		weights_ho.map(func);
-		bias_h.map(func);
-		bias_o.map(func);
+		for (MatrixF weights : weights) weights.map(func);
+		for (MatrixF bias : bias) bias.map(func);
 	}
 }
