@@ -7,10 +7,10 @@ import java.util.ArrayList;
 
 import com.sunflow.game.Game2D;
 import com.sunflow.logging.Log;
-import com.sunflow.math.Vertex2D;
-import com.sunflow.simpleneuralnetwork.Creature;
-import com.sunflow.simpleneuralnetwork.NeuralNetwork;
-import com.sunflow.simpleneuralnetwork.Population;
+import com.sunflow.math.SVector;
+import com.sunflow.simpleneuralnetwork.simple.NeuralNetwork;
+import com.sunflow.simpleneuralnetwork.util.Creature;
+import com.sunflow.simpleneuralnetwork.util.Population;
 
 public class SmartRockets extends Game2D {
 	public static void main(String[] args) {
@@ -129,7 +129,7 @@ public class SmartRockets extends Game2D {
 	}
 
 	@Override
-	protected void render(Graphics2D g) {
+	protected void draw(Graphics2D g) {
 		logic();
 
 		background(0);
@@ -166,10 +166,10 @@ public class SmartRockets extends Game2D {
 		stroke(50, 0, 0);
 		strokeWeight(2);
 		textSize(20);
-		textO("Generation: " + population.generation(), width - 200, 25);
-		textO("Cycles: " + cycles, width - 200, 45);
-		textO("Alive: " + population.getActiveSize(), width - 200, 65);
-		textO("LifeSpawn: " + lifespan, width - 200, 85);
+		text("Generation: " + population.generation(), width - 200, 25);
+		text("Cycles: " + cycles, width - 200, 45);
+		text("Alive: " + population.getActiveSize(), width - 200, 65);
+		text("LifeSpawn: " + lifespan, width - 200, 85);
 	}
 
 	@Override
@@ -217,14 +217,14 @@ public class SmartRockets extends Game2D {
 		private float y;
 		private float l;
 
-		private Vertex2D velocity;
-		private Vertex2D thrust;
+		private SVector velocity;
+		private SVector thrust;
 
 		private int timeAlive;
 		private boolean hitWall;
 		private boolean finished;
 
-//		private Vertex2D vel;
+//		private SVector vel;
 
 		public Rocket() {
 			super(inputs_length, outputs_length, hidden_length);
@@ -233,9 +233,9 @@ public class SmartRockets extends Game2D {
 			y = height - 20F;
 			l = 12F;
 
-//			velocity = new Vertex2D();
+//			velocity = new SVector();
 			double angle = -1 * Math.random() * Math.PI;
-			velocity = Vertex2D.fromAngle(angle, null);
+			velocity = SVector.fromAngle(angle, null);
 		}
 
 		public Rocket(NeuralNetwork brain) {
@@ -243,16 +243,16 @@ public class SmartRockets extends Game2D {
 			this.brain = brain.clone();
 		}
 
-		public Vertex2D dir() {
+		public SVector dir() {
 			return velocity.clone().normalize();
 		}
 
 		public float x2() {
-			return (float) (dir().x * l + x);
+			return dir().x * l + x;
 		}
 
 		public float y2() {
-			return (float) (dir().y * l + y);
+			return dir().y * l + y;
 		}
 
 		// Create a copy of this Rocket
@@ -277,10 +277,10 @@ public class SmartRockets extends Game2D {
 		}
 
 		@Override
-		public double calcScore() {
-			double dist = dist(x, y, goal.x, goal.y);
-			double score = 1.0D / Math.pow(dist, 4);
-			score *= timeAlive / 150D;
+		public float calcScore() {
+			float dist = dist(x, y, goal.x, goal.y);
+			float score = (float) (1 / Math.pow(dist, 4));
+			score *= timeAlive / 150f;
 			if (finished) score *= 10;
 			if (hitWall) score /= 4;
 			return score;
@@ -290,7 +290,7 @@ public class SmartRockets extends Game2D {
 		@Override
 		public void update(double dt) {
 			velocity.add(thrust);
-			velocity.limit(10D);
+			velocity.limit(10f);
 
 			x += velocity.x;
 			y += velocity.y;
@@ -337,8 +337,8 @@ public class SmartRockets extends Game2D {
 			double[] action = this.brain().predict(inputs);
 			// Decide the thrust!
 //			double angle = -1 * Math.random() * Math.PI;
-//			thrust = Vertex2D.of(action[0], action[1]);
-			thrust = new Vertex2D(action[0] * 2 - 1, action[1] * 2 - 1).mult(2);
+//			thrust = SVector.of(action[0], action[1]);
+			thrust = new SVector(action[0] * 2 - 1, action[1] * 2 - 1).mult(2);
 		}
 
 		public boolean offScreen() {

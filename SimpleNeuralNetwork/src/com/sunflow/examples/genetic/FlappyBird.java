@@ -5,9 +5,9 @@ import java.util.ArrayList;
 
 import com.sunflow.game.Game2D;
 import com.sunflow.logging.Log;
-import com.sunflow.simpleneuralnetwork.Creature;
-import com.sunflow.simpleneuralnetwork.NeuralNetwork;
-import com.sunflow.simpleneuralnetwork.Population;
+import com.sunflow.simpleneuralnetwork.simple.NeuralNetwork;
+import com.sunflow.simpleneuralnetwork.util.Creature;
+import com.sunflow.simpleneuralnetwork.util.Population;
 
 public class FlappyBird extends Game2D {
 	public static void main(String[] args) {
@@ -225,11 +225,11 @@ public class FlappyBird extends Game2D {
 		stroke(50, 0, 0);
 		strokeWeight(2);
 		textSize(20);
-		textO("Generation: " + population.generation(), width - 180, 25);
-		textO("Cycles: " + cycles, width - 180, 45);
-		textO("Alive: " + population.getActiveSize(), width - 180, 65);
-		textO("Score: " + score, width - 180, 85);
-		textO("HighScore: " + bestScore, width - 180, 105);
+		text("Generation: " + population.generation(), width - 180, 25);
+		text("Cycles: " + cycles, width - 180, 45);
+		text("Alive: " + population.getActiveSize(), width - 180, 65);
+		text("Score: " + score, width - 180, 85);
+		text("HighScore: " + bestScore, width - 180, 105);
 	}
 
 	@Override
@@ -386,9 +386,7 @@ public class FlappyBird extends Game2D {
 		}
 
 		@Override
-		public double calcScore() {
-			return timeAlive;
-		}
+		public float calcScore() { return timeAlive; }
 	}
 
 	private class Pipe {

@@ -6,10 +6,10 @@ import java.util.Random;
 
 import com.sunflow.game.Game2D;
 import com.sunflow.logging.Log;
-import com.sunflow.math.Vertex2F;
-import com.sunflow.simpleneuralnetwork.Creature;
-import com.sunflow.simpleneuralnetwork.NeuralNetwork;
-import com.sunflow.simpleneuralnetwork.Population;
+import com.sunflow.math.SVector;
+import com.sunflow.simpleneuralnetwork.simple.NeuralNetwork;
+import com.sunflow.simpleneuralnetwork.util.Creature;
+import com.sunflow.simpleneuralnetwork.util.Population;
 import com.sunflow.util.Mapper;
 
 public class EvolutionarySteeringBehaviors extends Game2D {
@@ -28,9 +28,9 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 
 	private int cycles;
 
-	private ArrayList<Vertex2F> food;
+	private ArrayList<SVector> food;
 
-	private ArrayList<Vertex2F> poison;
+	private ArrayList<SVector> poison;
 
 	private boolean debug;
 
@@ -53,14 +53,14 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 		for (int i = 0; i < maxFood / 3; i++) {
 			float x = random(width);
 			float y = random(height);
-			food.add(new Vertex2F(x, y));
+			food.add(new SVector(x, y));
 		}
 
 		poison = new ArrayList<>();
 		for (int i = 0; i < maxPoison; i++) {
 			float x = random(width);
 			float y = random(height);
-			poison.add(new Vertex2F(x, y));
+			poison.add(new SVector(x, y));
 		}
 	}
 
@@ -73,14 +73,14 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 		for (int i = 0; i < maxFood / 3; i++) {
 			float x = random(width);
 			float y = random(height);
-			food.add(new Vertex2F(x, y));
+			food.add(new SVector(x, y));
 		}
 
 		poison = new ArrayList<>();
 		for (int i = 0; i < maxPoison; i++) {
 			float x = random(width);
 			float y = random(height);
-			poison.add(new Vertex2F(x, y));
+			poison.add(new SVector(x, y));
 		}
 
 		population.populateOf(population.bestCreature());
@@ -103,7 +103,7 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 				if (!vehicle.offScreen() && Math.random() < babyRate) {
 					Log.error("Baby");
 					Vehicle v = vehicle.mutate();
-					v.pos = Vertex2F.add(vehicle.pos, Vertex2F.of((float) Math.random() * 6 - 4, (float) Math.random() * 6 - 4));
+					v.pos = SVector.add(vehicle.pos, new SVector((float) Math.random() * 6 - 4, (float) Math.random() * 6 - 4));
 					population.add(v);
 				}
 
@@ -115,13 +115,13 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 			if (Math.random() < (float) (maxFood - poison.size()) / maxFood * foodRate) {
 				float x = random(width);
 				float y = random(height);
-				food.add(new Vertex2F(x, y));
+				food.add(new SVector(x, y));
 			}
 
 			if (Math.random() < (float) (maxPoison - poison.size()) / maxPoison * poisonRate) {
 				float x = random(width);
 				float y = random(height);
-				poison.add(new Vertex2F(x, y));
+				poison.add(new SVector(x, y));
 			}
 
 			// What is highest score of the current population
@@ -167,14 +167,14 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 		strokeWeight(1);
 		size = food.size();
 		for (int i = 0; i < size; i++) {
-			Vertex2F f = food.get(i);
+			SVector f = food.get(i);
 			ellipse(f.x, f.y, 10, 10);
 		}
 
 		fill(255, 0, 0, 100);
 		size = poison.size();
 		for (int i = 0; i < size; i++) {
-			Vertex2F p = poison.get(i);
+			SVector p = poison.get(i);
 			ellipse(p.x, p.y, 10, 10);
 		}
 
@@ -182,9 +182,9 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 		stroke(50, 0, 0);
 		strokeWeight(2);
 		textSize(20);
-		textO("Generation: " + population.generation(), width - 200, 25);
-		textO("Cycles: " + cycles, width - 200, 45);
-		textO("Alive: " + population.getActiveSize(), width - 200, 65);
+		text("Generation: " + population.generation(), width - 200, 25);
+		text("Cycles: " + cycles, width - 200, 45);
+		text("Alive: " + population.getActiveSize(), width - 200, 65);
 //		textO("LifeSpawn: " + lifespan, width - 200, 85);
 	}
 
@@ -243,11 +243,11 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 			}
 		};
 
-		private Vertex2F pos;
+		private SVector pos;
 		private float r;
 
-		private Vertex2F velocity;
-		private Vertex2F acceleration;
+		private SVector velocity;
+		private SVector acceleration;
 
 		private float visionFood;
 		private float visionPoison;
@@ -261,9 +261,9 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 			float x = random(width);
 			float y = random(height);
 
-			pos = new Vertex2F(x, y);
-			velocity = Vertex2F.fromAngle(-1 * Math.random() * Math.PI, null);
-			acceleration = new Vertex2F();
+			pos = new SVector(x, y);
+			velocity = SVector.fromAngle((float) (-1 * Math.random() * Math.PI), null);
+			acceleration = new SVector();
 
 			r = 8F;
 			health = 1;
@@ -277,7 +277,7 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 			this.brain = brain.clone();
 		}
 
-//		public Vertex2F dir() {
+//		public SVector dir() {
 //			return velocity.clone().normalize();
 //		}
 
@@ -301,14 +301,10 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 		}
 
 		@Override
-		public Vehicle clone() {
-			return new Vehicle(brain);
-		}
+		public Vehicle clone() { return new Vehicle(brain); }
 
 		@Override
-		public double calcScore() {
-			return timeAlive;
-		}
+		public float calcScore() { return timeAlive; }
 
 		@Override
 		public void update(double dt) {
@@ -324,13 +320,11 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 			return (pos.x < 0 || pos.y < 0 || pos.x > width || pos.y > height);
 		}
 
-		public boolean isAlive() {
-			return health > 0;
-		}
+		public boolean isAlive() { return health > 0; }
 
-		public void eat(ArrayList<Vertex2F> list, float nutrition) {
+		public void eat(ArrayList<SVector> list, float nutrition) {
 			for (int i = list.size() - 1; i >= 0; i--) {
-				if (Vertex2F.dist(pos, list.get(i)) < r) {
+				if (SVector.dist(pos, list.get(i)) < r) {
 					health += nutrition;
 					list.remove(i);
 				}
@@ -339,12 +333,12 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 
 		// This is the key function now that decides
 		// if it should jump or not jump!
-		public void think(ArrayList<Vertex2F> food, ArrayList<Vertex2F> poison) {
+		public void think(ArrayList<SVector> food, ArrayList<SVector> poison) {
 			// Now create the inputs to the neural network
 			double[] inputs = new double[inputs_length];
 
-			Pair<Vertex2F, Float> closestFood = getClosest(pos, food.toArray(new Vertex2F[0]));
-			Pair<Vertex2F, Float> closestPoison = getClosest(pos, poison.toArray(new Vertex2F[0]));
+			Pair<SVector, Float> closestFood = getClosest(pos, food.toArray(new SVector[0]));
+			Pair<SVector, Float> closestPoison = getClosest(pos, poison.toArray(new SVector[0]));
 
 			// x position the vehicle
 			inputs[0] = map(pos.x, 0, width, 0, 1);
@@ -373,19 +367,19 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 			// Decide the thrust!
 //			double angle = -1 * Math.random() * Math.PI;
 //			thrust = Vertex2D.of(action[0], action[1]);
-//			applyForce(new Vertex2F((float) (action[0] - action[1]), (float) (action[2] - action[3])).normalize().mult(2));
+//			applyForce(new SVector((float) (action[0] - action[1]), (float) (action[2] - action[3])).normalize().mult(2));
 			if (visionFood > closestFood.b) {
-				Vertex2F pointer = Vertex2F.sub(closestFood.a, pos);
+				SVector pointer = SVector.sub(closestFood.a, pos);
 				applyForce(pointer.normalize().mult((float) (action[0] * 2 - 1)));
 			}
 			if (visionPoison > closestPoison.b) {
-				Vertex2F pointer = Vertex2F.sub(closestPoison.a, pos);
+				SVector pointer = SVector.sub(closestPoison.a, pos);
 				applyForce(pointer.normalize().mult((float) (action[1] * 2 - 1)));
 			}
 
 		}
 
-		private void applyForce(Vertex2F force) {
+		private void applyForce(SVector force) {
 			acceleration.add(force);
 		}
 

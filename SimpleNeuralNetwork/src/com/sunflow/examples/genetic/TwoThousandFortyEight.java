@@ -5,9 +5,9 @@ import java.util.ArrayList;
 
 import com.sunflow.game.Game2D;
 import com.sunflow.logging.Log;
-import com.sunflow.simpleneuralnetwork.Creature;
-import com.sunflow.simpleneuralnetwork.NeuralNetwork;
-import com.sunflow.simpleneuralnetwork.Population;
+import com.sunflow.simpleneuralnetwork.simple.NeuralNetwork;
+import com.sunflow.simpleneuralnetwork.util.Creature;
+import com.sunflow.simpleneuralnetwork.util.Population;
 import com.sunflow.util.Constants;
 
 public class TwoThousandFortyEight extends Game2D {
@@ -15,7 +15,7 @@ public class TwoThousandFortyEight extends Game2D {
 
 	private static int inputs_length = 16 * 16;
 	private static int outputs_length = 4;
-	private static int hidden_length = 10;
+	private static int hidden_length = 50;
 
 	// All time high score
 //	private double highScore;
@@ -32,7 +32,7 @@ public class TwoThousandFortyEight extends Game2D {
 	private boolean swiping;
 	ArrayList<Field[]> swipePairs = new ArrayList<>();
 
-//	private String best2048File = "rec/best2048Brain";
+	private String best2048File = "rec/brains/best2048Brain";
 
 	private Population<TTFEBrain> population;
 
@@ -66,20 +66,14 @@ public class TwoThousandFortyEight extends Game2D {
 		size = 4;
 		fields = new Field[size][size];
 
-		for (int x = 0; x < size; x++) {
-			for (int y = 0; y < size; y++) {
-				fields[x][y] = new Field(x, y);
-			}
+		for (int x = 0; x < size; x++) for (int y = 0; y < size; y++) {
+			fields[x][y] = new Field(x, y);
 		}
 
-		for (int i = 0; i < 2; i++) {
-			genNewValue();
-		}
+		for (int i = 0; i < 2; i++) genNewValue();
 
 //		models = new TTFEBrain[50];
-//		for (int i = 0; i < models.length; i++) {
-//			models[i] = new TTFEBrain();
-//		}
+//		for (int i = 0; i < models.length; i++) models[i] = new TTFEBrain();
 
 		population = new Population<TTFEBrain>(50, TTFEBrain::new);
 
@@ -95,7 +89,7 @@ public class TwoThousandFortyEight extends Game2D {
 			int c = 0;
 			do {
 				c++;
-				if (c > 100000) throw new Exception("Cant create new Value");
+				if (c > 100000) Log.error("Can't create new Value");
 				i = random(15);
 				x = i % size;
 				y = i / size;
@@ -167,15 +161,12 @@ public class TwoThousandFortyEight extends Game2D {
 					swiping = false;
 					genNewValue();
 				}
-			} else {
-				if (!finishedGen && simulate) {
-					model.think();
-					invalidMoves++;
-				}
+			} else if (!finishedGen && simulate) {
+				model.think();
+				invalidMoves++;
 			}
-			if (invalidMoves > allowedInvalidMoves) {
-				nextModel();
-			}
+
+			if (invalidMoves > allowedInvalidMoves) nextModel();
 		}
 	}
 
@@ -215,11 +206,13 @@ public class TwoThousandFortyEight extends Game2D {
 		fill(255, 0, 0, 100);
 		stroke(0, 0, 0, 50);
 		strokeWeight(4);
-		textO("Generation: " + population.generation(), width - 140, 16);
-		textO("Cycles: " + cycles, width - 140, 32);
-		textO("ModelIndex: " + modelIndex, width - 140, 48);
-		textO("HighScore: " + bestModelScore, width - 140, 64);
-		text((simulate ? "" : "not") + " simulating", width - 140, 80);
+		float xoff = width - 150;
+		float yoff = 16;
+		text("Generation: " + population.generation(), xoff, yoff * 1);
+		text("Cycles: " + cycles, xoff, yoff * 2);
+		text("ModelIndex: " + modelIndex, xoff, yoff * 3);
+		text("HighScore: " + bestModelScore, xoff, yoff * 4);
+		text((simulate ? "" : "not ") + "simulating", xoff, yoff * 5);
 	}
 
 	/**
@@ -458,12 +451,12 @@ public class TwoThousandFortyEight extends Game2D {
 					break;
 
 				case KeyEvent.VK_S:
-//					serialize(best2048File, population.bestCreature().brain());
+					serialize(best2048File, population.bestCreature().brain());
 					Log.info("serialized");
 					break;
 
 				case KeyEvent.VK_L:
-//					population.populateOf(new TTFEBrain((NeuralNetwork) deserialize(best2048File)));
+					population.populateOf(new TTFEBrain((NeuralNetwork) deserialize(best2048File)));
 					Log.info("deserialized");
 					break;
 			}
@@ -500,6 +493,7 @@ public class TwoThousandFortyEight extends Game2D {
 
 		public TTFEBrain() {
 			super(inputs_length, outputs_length, hidden_length);
+			this.brain.setLearningRate(0.01f);
 		}
 
 		public TTFEBrain(NeuralNetwork brain) {
@@ -510,35 +504,35 @@ public class TwoThousandFortyEight extends Game2D {
 		// if it should jump or not jump!
 		public void think() {
 			// Now create the inputs to the neural network
-			double[] inputs = new double[inputs_length];
+			float[] inputs = new float[inputs_length];
 
-//			double[][] i01 = new double[size][size];
-//			int index = 0;
-//			for (int x = 0; x < size; x++) {
-//				for (int y = 0; y < size; y++) {
-//					double hasVal = 0;
-//					for (int i = 0; i < 16; i++) {
-//						int val = (int) Math.pow(2, i);
-//						int inp = fields[x][y].value == (val == 1 ? 0 : val) ? 1 : 0;
-//						inputs[index++] = inp;
+//			float[][] i01 = new float[size][size];
+			int index = 0;
+			for (int x = 0; x < size; x++) {
+				for (int y = 0; y < size; y++) {
+//					float hasVal = 0;
+					for (int i = 0; i < 16; i++) {
+						int val = (int) Math.pow(2, i);
+						int inp = fields[x][y].value == (val == 1 ? 0 : val) ? 1 : 0;
+						inputs[index++] = inp;
 //						if (inp == 1 && fields[x][y].value != 0) hasVal = 1;
-//					}
+					}
 //					i01[x][y] = hasVal;
-//				}
-//			}
-//
-//			Log.err(" --- --- --- ---");
+				}
+			}
+
+//			Log.error(" --- --- --- ---");
 //			for (int x = 0; x < size; x++) {
 //				String line = "| ";
 //				for (int y = 0; y < size; y++) {
 //					line += String.format("%d%s", (int) i01[x][y], x < size ? " | " : "");
 //				}
-//				Log.err(line);
-//				if (x < size) Log.err(" --- --- --- ---");
+//				Log.error(line);
+//				if (x < size) Log.error(" --- --- --- ---");
 //			}
-//			Log.err();
-//			Log.err();
-//
+//			Log.error("");
+//			Log.error("");
+
 //			index = 0;
 //			for (int i = 0; i < size * size; i++) {
 //				int x = i % 4;
@@ -547,12 +541,12 @@ public class TwoThousandFortyEight extends Game2D {
 //				for (int j = 0; j < size * size; j++) {
 //					line += String.format("%d | ", (int) inputs[index++]);
 //				}
-//				Log.err(line);
-//				Log.err(" --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---");
+//				Log.error(line);
+//				Log.error(" --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---");
 //			}
 
 			// Get the outputs from the network
-			double[] action = this.brain().predict(inputs);
+			float[] action = this.brain().predict(inputs);
 			// Decide to jump or not!
 			int highest = findHighest(action);
 
@@ -572,8 +566,8 @@ public class TwoThousandFortyEight extends Game2D {
 			}
 		}
 
-		private int findHighest(double[] action) {
-			double max = -1;
+		private int findHighest(float[] action) {
+			float max = -1;
 			int maxI = -1;
 			for (int i = 0; i < action.length; i++) {
 				if (action[i] > max) {
@@ -585,9 +579,7 @@ public class TwoThousandFortyEight extends Game2D {
 		}
 
 		@Override
-		public TTFEBrain clone() {
-			return new TTFEBrain(brain);
-		}
+		public TTFEBrain clone() { return new TTFEBrain(brain); }
 
 		@Override
 		protected TTFEBrain mutate() {
@@ -600,12 +592,10 @@ public class TwoThousandFortyEight extends Game2D {
 		public void update(double dt) {}
 
 		@Override
-		protected double calcScore() {
-			int sum = 0;
-			for (int x = 0; x < size; x++) {
-				for (int y = 0; y < size; y++) {
-					sum += fields[x][y].value;
-				}
+		protected float calcScore() {
+			float sum = 0;
+			for (int x = 0; x < size; x++) for (int y = 0; y < size; y++) {
+				sum += fields[x][y].value / 100f;
 			}
 			return sum * sum;
 		}
@@ -688,28 +678,19 @@ public class TwoThousandFortyEight extends Game2D {
 					finished = y() >= swipingTo.y + speed / 2;
 					break;
 			}
-			if (finished) {
-				reset();
-			}
+			if (finished) reset();
+
 		}
 
-		public float x() {
-			return x + sx;
-		}
+		public float x() { return x + sx; }
 
-		public float y() {
-			return y + sy;
-		}
+		public float y() { return y + sy; }
 
 		@Override
-		public String toString() {
-			return String.format("[%d][%d](%d)", x, y, value);
-		}
+		public String toString() { return String.format("[%d][%d](%d)", x, y, value); }
 
 		@Override
-		protected Field clone() {
-			return new Field(this);
-		}
+		protected Field clone() { return new Field(this); }
 	}
 
 }

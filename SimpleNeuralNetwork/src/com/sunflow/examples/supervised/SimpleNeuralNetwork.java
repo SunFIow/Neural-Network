@@ -2,7 +2,7 @@ package com.sunflow.examples.supervised;
 
 import com.sunflow.game.Game2D;
 import com.sunflow.logging.Log;
-import com.sunflow.simpleneuralnetwork.NeuralNetwork;
+import com.sunflow.simpleneuralnetwork.simple.NeuralNetwork;
 
 public class SimpleNeuralNetwork extends Game2D {
 	public static void main(String[] args) { new SimpleNeuralNetwork(); }

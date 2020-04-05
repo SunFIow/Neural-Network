@@ -1,4 +1,4 @@
-package com.sunflow.simpleneuralnetwork;
+package com.sunflow.simpleneuralnetwork.util;
 
 import java.io.Serializable;
 

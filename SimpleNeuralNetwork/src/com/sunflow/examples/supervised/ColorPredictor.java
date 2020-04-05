@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 import com.sunflow.game.Game2D;
-import com.sunflow.simpleneuralnetwork.NeuralNetwork;
+import com.sunflow.simpleneuralnetwork.simple.NeuralNetwork;
 import com.sunflow.util.Constants;
 
 public class ColorPredictor extends Game2D implements Serializable {

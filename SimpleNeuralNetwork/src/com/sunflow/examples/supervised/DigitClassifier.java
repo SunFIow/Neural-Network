@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.sunflow.game.Game2D;
 import com.sunflow.logging.Log;
-import com.sunflow.simpleneuralnetwork.NeuralNetwork;
+import com.sunflow.simpleneuralnetwork.simple.NeuralNetwork;
 import com.sunflow.util.MNISTDecoder;
 import com.sunflow.util.MNISTDecoder.Digit;
 

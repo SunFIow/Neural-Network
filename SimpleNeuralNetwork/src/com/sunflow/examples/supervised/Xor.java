@@ -3,7 +3,7 @@ package com.sunflow.examples.supervised;
 import java.awt.Graphics2D;
 
 import com.sunflow.game.Game2D;
-import com.sunflow.simpleneuralnetwork.NeuralNetwork;
+import com.sunflow.simpleneuralnetwork.simple.NeuralNetwork;
 
 public class Xor extends Game2D {
 	public static void main(String[] args) {
@@ -60,7 +60,7 @@ public class Xor extends Game2D {
 	}
 
 	@Override
-	protected void render(Graphics2D g) {
+	protected void draw(Graphics2D g) {
 		strokeWeight(10);
 		stroke(0, 255, 0);
 		fill(255, 0, 255);

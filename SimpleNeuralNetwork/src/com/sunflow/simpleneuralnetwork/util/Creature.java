@@ -1,7 +1,8 @@
-package com.sunflow.simpleneuralnetwork;
+package com.sunflow.simpleneuralnetwork.util;
 
 import java.util.Random;
 
+import com.sunflow.simpleneuralnetwork.simple.NeuralNetwork;
 import com.sunflow.util.Mapper;
 import com.sunflow.util.MathUtils;
 
@@ -16,8 +17,8 @@ public abstract class Creature<Type> implements Cloneable, MathUtils {
 		}
 	};
 
-	public double score;
 	protected NeuralNetwork brain;
+	public double score;
 	public double fitness;
 
 	public Creature(int nodes_inputs, int nodes_outputs, int nodes_hidden) {
@@ -40,21 +41,17 @@ public abstract class Creature<Type> implements Cloneable, MathUtils {
 		return score;
 	}
 
-	public void invalid() {
-		score = -1;
-	}
+	public void invalid() { score = -1; }
 
 	// Create a copy of this bird
 	@Override
 	public abstract Type clone();
 
-	protected abstract Type mutate();
-
-	public void update() {
-		update(-1);
-	}
+	public void update() { update(-1); }
 
 	public abstract void update(double delta);
 
-	protected abstract double calcScore();
+	protected abstract Type mutate();
+
+	protected abstract float calcScore();
 }

@@ -1,13 +1,14 @@
-package com.sunflow.simpleneuralnetwork;
+package com.sunflow.simpleneuralnetwork.simple;
 
 import java.io.Serializable;
 
 import com.sunflow.logging.Log;
 import com.sunflow.math3d.MatrixF;
+import com.sunflow.simpleneuralnetwork.util.ActivationFunction;
+import com.sunflow.util.GameUtils;
 import com.sunflow.util.Mapper;
-import com.sunflow.util.StaticUtils;
 
-public class NeuralNetwork implements Cloneable, Serializable {
+public class NeuralNetwork implements Cloneable, Serializable, GameUtils {
 	public static ActivationFunction sigmoid = new ActivationFunction(
 			x -> 1f / (1f + (float) Math.exp(-x)),
 			y -> y * (1 - y));
@@ -57,7 +58,7 @@ public class NeuralNetwork implements Cloneable, Serializable {
 	}
 
 	public double[] predict(double[] inputs_array) {
-		return StaticUtils.instance.convertArray(predict(StaticUtils.instance.convertArray(inputs_array)));
+		return convertArray(predict(convertArray(inputs_array)));
 	}
 
 	public float[] predict(float[] inputs_array) {
@@ -85,7 +86,7 @@ public class NeuralNetwork implements Cloneable, Serializable {
 	public void setActivationFunction(ActivationFunction func) { this.activation_function = func; }
 
 	public void train(double[] inputs_array, double[] target_array) {
-		train(StaticUtils.instance.convertArray(inputs_array), StaticUtils.instance.convertArray(target_array));
+		train(convertArray(inputs_array), convertArray(target_array));
 	}
 
 	public void train(float[] inputs_array, float[] targets_array) {
