@@ -3,7 +3,7 @@ package com.sunflow.simpleneuralnetwork.simple;
 import java.io.Serializable;
 
 import com.sunflow.logging.Log;
-import com.sunflow.math3d.MatrixF;
+import com.sunflow.math3d.SMatrix;
 import com.sunflow.simpleneuralnetwork.util.ActivationFunction;
 import com.sunflow.util.GameUtils;
 import com.sunflow.util.Mapper;
@@ -21,8 +21,8 @@ public class NeuralNetworkGeneric implements Cloneable, Serializable, GameUtils 
 	private int nodes_outputs;
 	private int[] nodes_hidden;
 
-	private MatrixF[] weights;
-	private MatrixF[] bias;
+	private SMatrix[] weights;
+	private SMatrix[] bias;
 
 	private float learning_rate;
 	private ActivationFunction activation_function;
@@ -32,17 +32,17 @@ public class NeuralNetworkGeneric implements Cloneable, Serializable, GameUtils 
 		this.nodes_outputs = nodes_outputs;
 		this.nodes_hidden = nodes_hidden;
 
-		this.weights = new MatrixF[nodes_hidden.length + 1];
-		this.bias = new MatrixF[nodes_hidden.length + 1];
+		this.weights = new SMatrix[nodes_hidden.length + 1];
+		this.bias = new SMatrix[nodes_hidden.length + 1];
 
 		for (int i = 0; i <= nodes_hidden.length; i++) {
 			int nodes_I = i == 0 ? nodes_inputs : nodes_hidden[i - 1];
 			int nodes_O = i == nodes_hidden.length ? nodes_outputs : nodes_hidden[i];
 
-			this.weights[i] = new MatrixF(nodes_O, nodes_I);
+			this.weights[i] = new SMatrix(nodes_O, nodes_I);
 //			this.weights[i].randomize();
 
-			this.bias[i] = new MatrixF(nodes_O, 1);
+			this.bias[i] = new SMatrix(nodes_O, 1);
 //			this.bias[i].randomize();
 		}
 
@@ -52,8 +52,8 @@ public class NeuralNetworkGeneric implements Cloneable, Serializable, GameUtils 
 	}
 
 	public void randomize() {
-		for (MatrixF weight : weights) weight.randomize();
-		for (MatrixF bias : bias) bias.randomize();
+		for (SMatrix weight : weights) weight.randomize();
+		for (SMatrix bias : bias) bias.randomize();
 	}
 
 	public double[] predict(double[] inputs_array) {
@@ -64,14 +64,14 @@ public class NeuralNetworkGeneric implements Cloneable, Serializable, GameUtils 
 		if (inputs_array.length != nodes_inputs) {
 			Log.error("NeuralNetwork#predict: input and nn_input didnt match");
 		}
-		MatrixF inputs = MatrixF.fromArray(inputs_array);
-		MatrixF outputs = predict(inputs);
+		SMatrix inputs = SMatrix.fromArray(inputs_array);
+		SMatrix outputs = predict(inputs);
 		return outputs.toArray();
 	}
 
-	public MatrixF predict(MatrixF inputs) {
+	public SMatrix predict(SMatrix inputs) {
 		// Generating the outputs
-		MatrixF outputs = inputs;
+		SMatrix outputs = inputs;
 		for (int i = 0; i <= nodes_hidden.length; i++)
 			outputs = genLayer(weights[i], outputs, bias[i]);
 		// Sending back to the caller!
@@ -95,30 +95,30 @@ public class NeuralNetworkGeneric implements Cloneable, Serializable, GameUtils 
 		if (target_array.length != nodes_outputs) {
 			Log.error("NeuralNetwork#train: target and nn_output didnt match");
 		}
-		MatrixF inputs = MatrixF.fromArray(inputs_array);
-		MatrixF targets = MatrixF.fromArray(target_array);
+		SMatrix inputs = SMatrix.fromArray(inputs_array);
+		SMatrix targets = SMatrix.fromArray(target_array);
 		train(inputs, targets);
 	}
 
-	public void train(MatrixF inputs, MatrixF targets) {
-		MatrixF[] outputs = new MatrixF[nodes_hidden.length + 1];
+	public void train(SMatrix inputs, SMatrix targets) {
+		SMatrix[] outputs = new SMatrix[nodes_hidden.length + 1];
 		for (int i = 0; i <= nodes_hidden.length; i++) {
 			outputs[i] = genLayer(weights[i], i == 0 ? inputs : outputs[i - 1], bias[i]);
 		}
 
-		MatrixF errors_p = null;
+		SMatrix errors_p = null;
 		for (int i = nodes_hidden.length; i >= 0; i--) {
-			MatrixF errors;
-			MatrixF layer = outputs[i];
-			MatrixF layer_p = i == 0 ? inputs : outputs[i - 1];
-			MatrixF weights = this.weights[i];
-			MatrixF bias = this.bias[i];
+			SMatrix errors;
+			SMatrix layer = outputs[i];
+			SMatrix layer_p = i == 0 ? inputs : outputs[i - 1];
+			SMatrix weights = this.weights[i];
+			SMatrix bias = this.bias[i];
 			if (i == nodes_hidden.length) {
-				errors = MatrixF.substract(targets, outputs[nodes_hidden.length]);
+				errors = SMatrix.substract(targets, outputs[nodes_hidden.length]);
 			} else {
-				MatrixF weights_p = this.weights[i + 1];
-				MatrixF weights_p_t = MatrixF.transpose(weights_p);
-				errors = MatrixF.dot(weights_p_t, errors_p);
+				SMatrix weights_p = this.weights[i + 1];
+				SMatrix weights_p_t = SMatrix.transpose(weights_p);
+				errors = SMatrix.dot(weights_p_t, errors_p);
 			}
 			errors_p = errors;
 
@@ -126,24 +126,24 @@ public class NeuralNetworkGeneric implements Cloneable, Serializable, GameUtils 
 		}
 	}
 
-	private MatrixF genLayer(MatrixF weights, MatrixF inputs, MatrixF bias) {
+	private SMatrix genLayer(SMatrix weights, SMatrix inputs, SMatrix bias) {
 		// Generating the layer output
-		MatrixF outputs = MatrixF.dot(weights, inputs);
+		SMatrix outputs = SMatrix.dot(weights, inputs);
 		outputs.add(bias);
 		// Activation function
 		outputs.map(activation_function.func);
 		return outputs;
 	}
 
-	private void adjustLayer(MatrixF errors, MatrixF layer, MatrixF layer_p, MatrixF weights, MatrixF bias) {
+	private void adjustLayer(SMatrix errors, SMatrix layer, SMatrix layer_p, SMatrix weights, SMatrix bias) {
 		// Calculate gradients
-		MatrixF gradients = MatrixF.map(layer, activation_function.dfunc);
+		SMatrix gradients = SMatrix.map(layer, activation_function.dfunc);
 		gradients.multiply(errors);
 		gradients.multiply(learning_rate);
 
 		// Calculate deltas
-		MatrixF layer_p_t = MatrixF.transpose(layer_p);
-		MatrixF weights_delta = MatrixF.dot(gradients, layer_p_t);
+		SMatrix layer_p_t = SMatrix.transpose(layer_p);
+		SMatrix weights_delta = SMatrix.dot(gradients, layer_p_t);
 
 		// Adjust the weights by deltas
 		weights.add(weights_delta);
@@ -169,7 +169,7 @@ public class NeuralNetworkGeneric implements Cloneable, Serializable, GameUtils 
 	}
 
 	public void mutate(Mapper func) {
-		for (MatrixF weights : weights) weights.map(func);
-		for (MatrixF bias : bias) bias.map(func);
+		for (SMatrix weights : weights) weights.map(func);
+		for (SMatrix bias : bias) bias.map(func);
 	}
 }

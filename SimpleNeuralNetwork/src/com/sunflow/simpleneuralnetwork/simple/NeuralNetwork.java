@@ -3,7 +3,7 @@ package com.sunflow.simpleneuralnetwork.simple;
 import java.io.Serializable;
 
 import com.sunflow.logging.Log;
-import com.sunflow.math3d.MatrixF;
+import com.sunflow.math3d.SMatrix;
 import com.sunflow.simpleneuralnetwork.util.ActivationFunction;
 import com.sunflow.util.GameUtils;
 import com.sunflow.util.Mapper;
@@ -21,11 +21,11 @@ public class NeuralNetwork implements Cloneable, Serializable, GameUtils {
 	private int nodes_hidden;
 	private int nodes_outputs;
 
-	private MatrixF weights_ih;
-	private MatrixF weights_ho;
+	private SMatrix weights_ih;
+	private SMatrix weights_ho;
 
-	private MatrixF bias_h;
-	private MatrixF bias_o;
+	private SMatrix bias_h;
+	private SMatrix bias_o;
 
 	private float learning_rate;
 	private ActivationFunction activation_function;
@@ -35,13 +35,13 @@ public class NeuralNetwork implements Cloneable, Serializable, GameUtils {
 		this.nodes_outputs = nodes_outputs;
 		this.nodes_hidden = nodes_hidden;
 
-		this.weights_ih = new MatrixF(nodes_hidden, nodes_inputs);
-		this.weights_ho = new MatrixF(nodes_outputs, nodes_hidden);
+		this.weights_ih = new SMatrix(nodes_hidden, nodes_inputs);
+		this.weights_ho = new SMatrix(nodes_outputs, nodes_hidden);
 //		this.weights_ih.randomize();
 //		this.weights_ho.randomize();
 
-		this.bias_h = new MatrixF(nodes_hidden, 1);
-		this.bias_o = new MatrixF(nodes_outputs, 1);
+		this.bias_h = new SMatrix(nodes_hidden, 1);
+		this.bias_o = new SMatrix(nodes_outputs, 1);
 //		this.bias_h.randomize();
 //		this.bias_o.randomize();
 
@@ -65,16 +65,16 @@ public class NeuralNetwork implements Cloneable, Serializable, GameUtils {
 		if (inputs_array.length != nodes_inputs) {
 			Log.error("NeuralNetwork#predict: inputs and nn_inputs didnt match");
 		}
-		MatrixF inputs = MatrixF.fromArray(inputs_array);
-		MatrixF outputs = predict(inputs);
+		SMatrix inputs = SMatrix.fromArray(inputs_array);
+		SMatrix outputs = predict(inputs);
 		return outputs.toArray();
 	}
 
-	public MatrixF predict(MatrixF inputs) {
+	public SMatrix predict(SMatrix inputs) {
 		// Generating the hidden outputs
-		MatrixF hidden = genLayer(weights_ih, inputs, bias_h);
+		SMatrix hidden = genLayer(weights_ih, inputs, bias_h);
 		// Generating the real outputs
-		MatrixF outputs = genLayer(weights_ho, hidden, bias_o);
+		SMatrix outputs = genLayer(weights_ho, hidden, bias_o);
 		// Sending back to the caller!
 		return outputs;
 	}
@@ -96,47 +96,47 @@ public class NeuralNetwork implements Cloneable, Serializable, GameUtils {
 		if (targets_array.length != nodes_outputs) {
 			Log.error("NeuralNetwork#train: target and nn_output didnt match");
 		}
-		MatrixF inputs = MatrixF.fromArray(inputs_array);
-		MatrixF targets = MatrixF.fromArray(targets_array);
+		SMatrix inputs = SMatrix.fromArray(inputs_array);
+		SMatrix targets = SMatrix.fromArray(targets_array);
 		train(inputs, targets);
 	}
 
-	public void train(MatrixF inputs, MatrixF targets) {
+	public void train(SMatrix inputs, SMatrix targets) {
 		// Generating the hidden outputs
-		MatrixF hidden = genLayer(weights_ih, inputs, bias_h);
+		SMatrix hidden = genLayer(weights_ih, inputs, bias_h);
 		// Generating the real outputs
-		MatrixF outputs = genLayer(weights_ho, hidden, bias_o);
+		SMatrix outputs = genLayer(weights_ho, hidden, bias_o);
 
 		// Calculate the output layer errors
 		// ERROR = TARGET - OUTPUT
-		MatrixF errors_o = MatrixF.substract(targets, outputs);
+		SMatrix errors_o = SMatrix.substract(targets, outputs);
 		adjustLayer(errors_o, outputs, hidden, weights_ho, bias_o);
 
 		// Calculate the hidden layer errors
 		// ERROR = TARGET - OUTPUT
-		MatrixF weights_ho_t = MatrixF.transpose(weights_ho);
-		MatrixF errors_h = MatrixF.dot(weights_ho_t, errors_o);
+		SMatrix weights_ho_t = SMatrix.transpose(weights_ho);
+		SMatrix errors_h = SMatrix.dot(weights_ho_t, errors_o);
 		adjustLayer(errors_h, hidden, inputs, weights_ih, bias_h);
 	}
 
-	private MatrixF genLayer(MatrixF weights, MatrixF inputs, MatrixF bias) {
+	private SMatrix genLayer(SMatrix weights, SMatrix inputs, SMatrix bias) {
 		// Generating the layer output
-		MatrixF outputs = MatrixF.dot(weights, inputs);
+		SMatrix outputs = SMatrix.dot(weights, inputs);
 		outputs.add(bias);
 		// Activation function
 		outputs.map(activation_function.func);
 		return outputs;
 	}
 
-	private void adjustLayer(MatrixF errors, MatrixF layer, MatrixF layer_p, MatrixF weights, MatrixF bias) {
+	private void adjustLayer(SMatrix errors, SMatrix layer, SMatrix layer_p, SMatrix weights, SMatrix bias) {
 		// Calculate gradients
-		MatrixF gradients = MatrixF.map(layer, activation_function.dfunc);
+		SMatrix gradients = SMatrix.map(layer, activation_function.dfunc);
 		gradients.multiply(errors);
 		gradients.multiply(learning_rate);
 
 		// Calculate deltas
-		MatrixF layer_p_t = MatrixF.transpose(layer_p);
-		MatrixF weights_delta = MatrixF.dot(gradients, layer_p_t);
+		SMatrix layer_p_t = SMatrix.transpose(layer_p);
+		SMatrix weights_delta = SMatrix.dot(gradients, layer_p_t);
 
 		// Adjust the weights by deltas
 		weights.add(weights_delta);
