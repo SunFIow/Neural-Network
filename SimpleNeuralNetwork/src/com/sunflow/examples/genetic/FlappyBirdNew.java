@@ -5,16 +5,14 @@ import java.util.ArrayList;
 
 import com.sunflow.game.GameBase;
 import com.sunflow.logging.LogManager;
-import com.sunflow.simpleneuralnetwork.simple.NeuralNetwork;
-import com.sunflow.simpleneuralnetwork.util.Creature;
-import com.sunflow.simpleneuralnetwork.util.Population;
+import com.sunflow.simpleneuralnetwork.convolutional.CNN;
+import com.sunflow.simpleneuralnetwork.util.CreatureNew;
+import com.sunflow.simpleneuralnetwork.util.PopulationNew;
 
-public class FlappyBird extends GameBase {
-	public static void main(String[] args) {
-		new FlappyBird();
-	}
+public class FlappyBirdNew extends GameBase {
+	public static void main(String[] args) { new FlappyBirdNew(); }
 
-	private String bestBirdFile = "rec/brains/bestBirdBrain";
+	private String bestBirdFile = "rec/brains/bestNewBirdBrain";
 
 	// Pipes
 	private ArrayList<Pipe> pipes;
@@ -34,7 +32,7 @@ public class FlappyBird extends GameBase {
 	// Training or just showing the current best
 	private boolean runBest;
 
-	private Population<Bird> population;
+	private PopulationNew<Bird> population;
 
 	private int cycles;
 
@@ -55,7 +53,7 @@ public class FlappyBird extends GameBase {
 
 		pipes = new ArrayList<>();
 
-		population = new Population<Bird>(500, Bird::new, this::resetGame);
+		population = new PopulationNew<Bird>(500, Bird::new, this::resetGame);
 
 		// Access the interface elements
 //		speedSlider = select('#speedSlider');
@@ -261,14 +259,14 @@ public class FlappyBird extends GameBase {
 					LogManager.info("serialized");
 					break;
 				case KeyEvent.VK_L:
-					population.populateOf(new Bird((NeuralNetwork) deserialize(bestBirdFile)));
+					population.populateOf(new Bird((CNN) deserialize(bestBirdFile)));
 					LogManager.info("deserialized");
 					break;
 			}
 		}
 	}
 
-	private class Bird extends Creature<Bird> {
+	private class Bird extends CreatureNew<Bird> {
 //		private Mapper mutate = new Mapper() {
 //			@Override
 //			public double func(double x, int i, int j) {
@@ -303,7 +301,7 @@ public class FlappyBird extends GameBase {
 			this.velocity = 0.0F;
 		}
 
-		public Bird(NeuralNetwork brain) {
+		public Bird(CNN brain) {
 			this();
 			this.brain = brain.clone();
 		}
@@ -345,24 +343,30 @@ public class FlappyBird extends GameBase {
 
 			if (closest != null) {
 				// Now create the inputs to the neural network
-				double[] inputs = new double[5];
+				float[] inputs = new float[5];
 				// x position of closest pipe
-				inputs[0] = map(closest.x, this.x, width, 0, 1d);
+				inputs[0] = map(closest.x, this.x, width, 0, 1);
 				// top of closest pipe opening
-				inputs[1] = map(closest.top, 0, height, 0, 1d);
+				inputs[1] = map(closest.top, 0, height, 0, 1);
 				// bottom of closest pipe opening
-				inputs[2] = map(closest.bottom, 0, height, 0, 1d);
+				inputs[2] = map(closest.bottom, 0, height, 0, 1);
 				// bird's y position
-				inputs[3] = map(this.y, 0, height, 0, 1d);
+				inputs[3] = map(this.y, 0, height, 0, 1);
 				// bird's y velocity
-				inputs[4] = map(this.velocity, -30, 30, 0, 1d);
+				inputs[4] = map(this.velocity, -30, 30, 0, 1);
 
 				// Get the outputs from the network
-				double[] action = this.brain().predict(inputs);
-				// Decide to jump or not!
-				if (action[1] > action[0]) {
-					this.up();
-				}
+//				float[] action = this.brain().predict(inputs);
+//				// Decide to jump or not!
+//				if (action[1] > action[0]) {
+//					this.up();
+//				}
+				this.brain.classify(this.brain.input(inputs), (error, result) -> {
+					error.ifPresent(System.err::println);
+					result.ifPresent(r -> {
+						if (r.prediction[1] > r.prediction[0]) this.up();
+					});
+				});
 			}
 		}
 

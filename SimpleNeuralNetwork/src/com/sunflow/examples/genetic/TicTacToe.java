@@ -5,10 +5,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
-import com.sunflow.game.Game2D;
-import com.sunflow.logging.Log;
+import com.sunflow.game.GameBase;
+import com.sunflow.logging.LogManager;
 
-public class TicTacToe extends Game2D {
+public class TicTacToe extends GameBase {
 
 	public static void main(String[] args) {
 		new TicTacToe();
@@ -24,7 +24,7 @@ public class TicTacToe extends Game2D {
 	private boolean gameOver;
 
 	@Override
-	protected void setup() {
+	public void setup() {
 		createCanvas(600, 600);
 		smooth();
 		frameRate(60);
@@ -47,7 +47,7 @@ public class TicTacToe extends Game2D {
 //	protected void update() {}
 
 	@Override
-	protected void draw() {
+	public void draw() {
 		background(200);
 		strokeWeight(4);
 		stroke(0);
@@ -81,8 +81,8 @@ public class TicTacToe extends Game2D {
 
 		if (state != "ongoing") {
 			gameOver = true;
-			if (state == "tie") Log.info("It's a tie!");
-			else Log.info("Player " + state + " won");
+			if (state == "tie") LogManager.info("It's a tie!");
+			else LogManager.info("Player " + state + " won");
 			return true;
 		}
 		return false;

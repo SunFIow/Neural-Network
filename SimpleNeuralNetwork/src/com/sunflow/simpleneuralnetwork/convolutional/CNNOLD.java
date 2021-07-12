@@ -1,21 +1,42 @@
-package com.sunflow.simpleneuralnetwork.simple;
-
-import java.io.Serializable;
+package com.sunflow.simpleneuralnetwork.convolutional;
 
 import com.sunflow.logging.LogManager;
 import com.sunflow.math3d.SMatrix;
 import com.sunflow.simpleneuralnetwork.util.ActivationFunction;
-import com.sunflow.util.GameUtils;
 import com.sunflow.util.Mapper;
 
-public class NeuralNetwork implements Cloneable, Serializable, GameUtils {
-	public static ActivationFunction sigmoid = new ActivationFunction(
-			x -> 1f / (1f + (float) Math.exp(-x)),
-			y -> y * (1 - y));
+public class CNNOLD { // TODO: make inputs and targets nameable
+	public static void main(String[] args) {
+		CNN.Option options = new CNN.Option();
+		CNNOLD model = new CNNOLD(options);
+	}
 
-	public static ActivationFunction tanh = new ActivationFunction(
-			x -> (float) Math.tanh(x),
-			y -> 1f - y * y);
+	private final CNN.Option options;
+
+	public CNNOLD(CNN.Option options) {
+		this.options = options;
+
+		this.nodes_inputs = options.input();
+		this.nodes_outputs = options.output();
+		this.nodes_hidden = 10;
+
+		this.weights_ih = new SMatrix(nodes_hidden, nodes_inputs);
+		this.weights_ho = new SMatrix(nodes_outputs, nodes_hidden);
+
+		this.bias_h = new SMatrix(nodes_hidden, 1);
+		this.bias_o = new SMatrix(nodes_outputs, 1);
+
+		this.setLearningRate(options.learning_rate());
+		this.setActivationFunction(options.activation_function());
+		this.randomize();
+	}
+
+	private void randomize() {
+		this.weights_ih.randomize();
+		this.weights_ho.randomize();
+		this.bias_h.randomize();
+		this.bias_o.randomize();
+	}
 
 	private int nodes_inputs;
 	private int nodes_hidden;
@@ -30,47 +51,18 @@ public class NeuralNetwork implements Cloneable, Serializable, GameUtils {
 	private float learning_rate;
 	private ActivationFunction activation_function;
 
-	public NeuralNetwork(int nodes_inputs, int nodes_outputs, int nodes_hidden) {
-		this.nodes_inputs = nodes_inputs;
-		this.nodes_outputs = nodes_outputs;
-		this.nodes_hidden = nodes_hidden;
-
-		this.weights_ih = new SMatrix(nodes_hidden, nodes_inputs);
-		this.weights_ho = new SMatrix(nodes_outputs, nodes_hidden);
-//		this.weights_ih.randomize();
-//		this.weights_ho.randomize();
-
-		this.bias_h = new SMatrix(nodes_hidden, 1);
-		this.bias_o = new SMatrix(nodes_outputs, 1);
-//		this.bias_h.randomize();
-//		this.bias_o.randomize();
-
-		this.setLearningRate(0.1F);
-		this.setActivationFunction(sigmoid);
-		randomize();
-	}
-
-	public void randomize() {
-		this.weights_ih.randomize();
-		this.weights_ho.randomize();
-		this.bias_h.randomize();
-		this.bias_o.randomize();
-	}
-
-	public double[] predict(double[] inputs_array) {
-		return convert(predict(convert(inputs_array)));
-	}
-
-	public float[] predict(float[] inputs_array) {
+	private float[] predict(float[] inputs_array) throws PredictionError {
 		if (inputs_array.length != nodes_inputs) {
-			LogManager.error("NeuralNetwork#predict: inputs and nn_inputs didn't match");
+			LogManager.error("CNN#predict: inputs and nn_inputs didn't match");
+			throw new PredictionError("NeuralNetwork#predict: inputs and nn_inputs didn't match");
 		}
 		SMatrix inputs = SMatrix.fromArray(inputs_array);
 		SMatrix outputs = predict(inputs);
 		return outputs.toArray();
+
 	}
 
-	public SMatrix predict(SMatrix inputs) {
+	private SMatrix predict(SMatrix inputs) {
 		// Generating the hidden outputs
 		SMatrix hidden = genLayer(weights_ih, inputs, bias_h);
 		// Generating the real outputs
@@ -79,29 +71,23 @@ public class NeuralNetwork implements Cloneable, Serializable, GameUtils {
 		return outputs;
 	}
 
-	public void setLearningRate(double learning_rate) { setLearningRate((float) learning_rate); }
+	private void setLearningRate(float learning_rate) { this.learning_rate = learning_rate; }
 
-	public void setLearningRate(float learning_rate) { this.learning_rate = learning_rate; }
+	private void setActivationFunction(ActivationFunction func) { this.activation_function = func; }
 
-	public void setActivationFunction(ActivationFunction func) { this.activation_function = func; }
-
-	public void train(double[] inputs_array, double[] target_array) {
-		train(convert(inputs_array), convert(target_array));
-	}
-
-	public void train(float[] inputs_array, float[] targets_array) {
+	private float train(float[] inputs_array, float[] targets_array) {
 		if (inputs_array.length != nodes_inputs) {
-			LogManager.error("NeuralNetwork#train: input and nn_input didnt match");
+			LogManager.error("CNN#train: input and nn_input didn't match");
 		}
 		if (targets_array.length != nodes_outputs) {
-			LogManager.error("NeuralNetwork#train: target and nn_output didn't match");
+			LogManager.error("CNN#train: target and nn_output didn't match");
 		}
 		SMatrix inputs = SMatrix.fromArray(inputs_array);
 		SMatrix targets = SMatrix.fromArray(targets_array);
-		train(inputs, targets);
+		return train(inputs, targets);
 	}
 
-	public void train(SMatrix inputs, SMatrix targets) {
+	private float train(SMatrix inputs, SMatrix targets) {
 		// Generating the hidden outputs
 		SMatrix hidden = genLayer(weights_ih, inputs, bias_h);
 		// Generating the real outputs
@@ -110,13 +96,23 @@ public class NeuralNetwork implements Cloneable, Serializable, GameUtils {
 		// Calculate the output layer errors
 		// ERROR = TARGET - OUTPUT
 		SMatrix errors_o = SMatrix.substract(targets, outputs);
+
+		float error_o_sum = 0;
+		for (float x : errors_o.toArray()) error_o_sum += x;
+
 		adjustLayer(errors_o, outputs, hidden, weights_ho, bias_o);
 
 		// Calculate the hidden layer errors
 		// ERROR = TARGET - OUTPUT
 		SMatrix weights_ho_t = SMatrix.transpose(weights_ho);
 		SMatrix errors_h = SMatrix.dot(weights_ho_t, errors_o);
+
+//		float error_h_sum = 0;
+//		for (float x : errors_h.toArray()) error_h_sum += x;
+
 		adjustLayer(errors_h, hidden, inputs, weights_ih, bias_h);
+
+		return error_o_sum;
 	}
 
 	private SMatrix genLayer(SMatrix weights, SMatrix inputs, SMatrix bias) {
@@ -145,8 +141,8 @@ public class NeuralNetwork implements Cloneable, Serializable, GameUtils {
 	}
 
 	@Override
-	public NeuralNetwork clone() {
-		NeuralNetwork clone = new NeuralNetwork(nodes_inputs, nodes_outputs, nodes_hidden);
+	public CNNOLD clone() {
+		CNNOLD clone = new CNNOLD(this.options);
 		clone.nodes_inputs = this.nodes_inputs;
 		clone.nodes_outputs = this.nodes_outputs;
 		clone.nodes_hidden = this.nodes_hidden;

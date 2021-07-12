@@ -5,11 +5,11 @@ import java.awt.event.MouseEvent;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import com.sunflow.game.Game2D;
+import com.sunflow.game.GameBase;
 import com.sunflow.simpleneuralnetwork.simple.NeuralNetwork;
-import com.sunflow.util.Constants;
+import com.sunflow.util.SConstants;
 
-public class ColorPredictor extends Game2D implements Serializable {
+public class ColorPredictor extends GameBase implements Serializable {
 
 	private static final long serialVersionUID = -4087627241414595713L;
 
@@ -26,7 +26,7 @@ public class ColorPredictor extends Game2D implements Serializable {
 	private ArrayList<double[]> training_data = new ArrayList<>();
 
 	@Override
-	protected void setup() {
+	public void setup() {
 		createCanvas(800, 400);
 		smooth();
 
@@ -37,11 +37,11 @@ public class ColorPredictor extends Game2D implements Serializable {
 	}
 
 	@Override
-	protected void draw() {
+	public void draw() {
 		background(r * 255, g * 255, b * 255);
 //		background(255, 0, 0);
 
-		textAlign(Constants.CENTER, Constants.CENTER);
+		textAlign(SConstants.CENTER, SConstants.CENTER);
 
 		noStroke();
 		fill(0);

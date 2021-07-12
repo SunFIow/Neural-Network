@@ -3,12 +3,12 @@ package com.sunflow.examples.genetic;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
-import com.sunflow.game.Game2D;
+import com.sunflow.game.GameBase;
 import com.sunflow.simpleneuralnetwork.simple.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.util.Creature;
 import com.sunflow.simpleneuralnetwork.util.Population;
 
-public class TRexRunner extends Game2D {
+public class TRexRunner extends GameBase {
 	public static void main(String[] args) { new TRexRunner(); }
 
 	private static int inputs_length = 6;
@@ -29,7 +29,7 @@ public class TRexRunner extends Game2D {
 	private boolean humanPlay;
 
 	@Override
-	protected void setup() {
+	public void setup() {
 		createCanvas(800, 400);
 		smooth();
 		frameRate(60);
@@ -62,16 +62,16 @@ public class TRexRunner extends Game2D {
 	}
 
 	@Override
-	protected void update() {
+	public void update() {
 		for (int n = 0; n < cycles; n++) {
 			if (humanPlay) {
 //					rex.think();
-				rex.update(delta);
+				rex.update(tElapsedTime);
 			} else {
 				for (int i = 0; i < population.getActiveSize(); i++) {
 					TRex rex = population.get(i);
 					rex.think();
-					rex.update(delta);
+					rex.update(tElapsedTime);
 					if (rex.collide(cacti)) population.remove(rex);
 				}
 //				for (int i = 0; i < population.getActiveSize(); i++) {
@@ -112,7 +112,7 @@ public class TRexRunner extends Game2D {
 			}
 			for (int i = cacti.size() - 1; i >= 0; i--) {
 				Cactus cactus = cacti.get(i);
-				cactus.update(delta);
+				cactus.update(tElapsedTime);
 				if (cactus.offScreen()) {
 					cacti.remove(i);
 					score++;
@@ -129,7 +129,7 @@ public class TRexRunner extends Game2D {
 	}
 
 	@Override
-	protected void draw() {
+	public void draw() {
 		background(240);
 
 		stroke(0);

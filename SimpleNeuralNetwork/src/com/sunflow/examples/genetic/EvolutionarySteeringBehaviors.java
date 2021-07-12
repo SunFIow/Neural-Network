@@ -4,15 +4,15 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Random;
 
-import com.sunflow.game.Game2D;
-import com.sunflow.logging.Log;
+import com.sunflow.game.GameBase;
+import com.sunflow.logging.LogManager;
 import com.sunflow.math.SVector;
 import com.sunflow.simpleneuralnetwork.simple.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.util.Creature;
 import com.sunflow.simpleneuralnetwork.util.Population;
 import com.sunflow.util.Mapper;
 
-public class EvolutionarySteeringBehaviors extends Game2D {
+public class EvolutionarySteeringBehaviors extends GameBase {
 	public static void main(String[] args) {
 		new EvolutionarySteeringBehaviors();
 	}
@@ -39,7 +39,7 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 	private static final double foodRate = 0.2, poisonRate = 0.1, babyRate = 0.002;
 
 	@Override
-	protected void setup() {
+	public void setup() {
 		createCanvas(800, 600);
 		smooth();
 		frameRate(60);
@@ -101,7 +101,7 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 				vehicle.eat(poison, poisonNut);
 
 				if (!vehicle.offScreen() && Math.random() < babyRate) {
-					Log.error("Baby");
+					LogManager.error("Baby");
 					Vehicle v = vehicle.mutate();
 					v.pos = SVector.add(vehicle.pos, new SVector((float) Math.random() * 6 - 4, (float) Math.random() * 6 - 4));
 					population.add(v);
@@ -150,7 +150,7 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 	}
 
 	@Override
-	protected void draw() {
+	public void draw() {
 		logic();
 
 		background(25);
@@ -217,11 +217,11 @@ public class EvolutionarySteeringBehaviors extends Game2D {
 					break;
 				case KeyEvent.VK_S:
 					serialize(bestVehicleFile, population.bestCreature().brain());
-					Log.info("serialized");
+					LogManager.info("serialized");
 					break;
 				case KeyEvent.VK_L:
 					population.populateOf(new Vehicle((NeuralNetwork) deserialize(bestVehicleFile)));
-					Log.info("deserialized");
+					LogManager.info("deserialized");
 					break;
 			}
 		}

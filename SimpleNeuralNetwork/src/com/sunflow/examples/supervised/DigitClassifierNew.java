@@ -3,15 +3,16 @@ package com.sunflow.examples.supervised;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.sunflow.game.GameBase;
 import com.sunflow.logging.LogManager;
-import com.sunflow.simpleneuralnetwork.simple.NeuralNetwork;
+import com.sunflow.simpleneuralnetwork.convolutional.CNN;
 import com.sunflow.util.MNISTDecoder;
 import com.sunflow.util.MNISTDecoder.Digit;
 
-public class DigitClassifier extends GameBase {
-	public static void main(String[] args) { new DigitClassifier(); }
+public class DigitClassifierNew extends GameBase {
+	public static void main(String[] args) { new DigitClassifierNew(); }
 
 	private String bestDigitClassifier = "rec/brains/bestDigitClassifier";
 
@@ -23,7 +24,7 @@ public class DigitClassifier extends GameBase {
 
 	private List<Digit> digits;
 
-	private NeuralNetwork brain;
+	private CNN brain;
 
 	private int red = color(255, 0, 0);
 	private int green = color(0, 255, 0);
@@ -40,8 +41,12 @@ public class DigitClassifier extends GameBase {
 
 		digits = MNISTDecoder.loadDataSet(pathData, pathLabels);
 
-		brain = new NeuralNetwork(SIZE * SIZE, 10, 50);
-		brain.setLearningRate(0.01);
+//		brain = new CNN(SIZE * SIZE, 10, 50);
+//		brain.setLearningRate(0.01);
+		brain = new CNN(new CNN.Option()
+				.input(SIZE * SIZE)
+				.output(10)
+				.learning_rate(0.001f));
 
 		long end = System.currentTimeMillis();
 		long dt = end - start;
@@ -49,42 +54,48 @@ public class DigitClassifier extends GameBase {
 
 		LogManager.info("Found Datasets: " + digits.size());
 
+		digits.forEach(digit -> {
+			float[] input = new float[SIZE * SIZE];
+
+			for (int x = 0; x < SIZE; x++) for (int y = 0; y < SIZE; y++) {
+				int gray = MNISTDecoder.toUnsignedByte(digit.data[x][y]);
+				input[index(x, y, SIZE)] = gray / 255f;
+			}
+			float[] target = new float[10];
+			target[digit.label] = 1;
+
+			brain.addData(brain.input(input), brain.target(target));
+		});
+
 		createCanvas(COLS * size * 2 + SIZE * 4, ROWS * (size + SIZE) + SIZE);
 		showInfo(true);
 		textSize(size);
+		infoSize(20);
 		textAlign(CENTER, CENTER);
 	}
 
 	private int learning_steps = 0;
 
+	long start;
+
 	@Override
 	public void update() {
 		if (!learning) return;
 
-		for (int i = 0; i < 100; i++) {
-			learning_steps++;
-			int index = random(digits.size());
-			Digit d = digits.get(index);
+		brain.train(new CNN.Option.Training().epoch(1).batch(500), (i, loss) -> {
+			learning_steps += 500;
+			if (learning_steps == 10000) System.out.println(System.currentTimeMillis() - start);
+		}, () -> {
 
-			float[] input = new float[SIZE * SIZE];
-
-			for (int x = 0; x < SIZE; x++) for (int y = 0; y < SIZE; y++) {
-				int gray = MNISTDecoder.toUnsignedByte(d.data[x][y]);
-				input[index(x, y, SIZE)] = gray / 255f;
-			}
-			float[] target = new float[10];
-			target[d.label] = 1;
-
-			brain.train(input, target);
-		}
+		});
 	}
 
-	@Override
-	public void draw() {
-		if (!predict) return;
-		predict = false;
-		predict();
-	}
+//	@Override
+//	protected void draw() {
+//		if (!predict) return;
+//		predict = false;
+//		predict();
+//	}
 
 	private void predict() {
 		if (learning) info("Learning steps: " + learning_steps);
@@ -102,18 +113,24 @@ public class DigitClassifier extends GameBase {
 				input[index(j, k, SIZE)] = gray / 255f;
 			}
 
-			float[] output = brain.predict(input);
+			AtomicReference<float[]> bla = new AtomicReference<>();
+			this.brain.classify(this.brain.input(input), (error, result) -> {
+				error.ifPresent(System.err::println);
+				result.ifPresent(r -> {
+					bla.set(r.prediction);
+				});
+
+			});
+			float[] prediction = bla.get();
 
 			int maxI = -1;
 			float max = -1;
-			for (int i = 0; i < output.length; i++) {
-				if (output[i] < max) continue;
-				max = output[i];
+			for (int i = 0; i < prediction.length; i++) {
+				if (prediction[i] < max) continue;
+				max = prediction[i];
 				maxI = i;
 			}
-
 			boolean right = maxI == d.label;
-
 			// draw
 			int xpos = x * size * 2 + x * SIZE + SIZE;
 			int ypos = y * (size + SIZE) + SIZE;
@@ -128,19 +145,20 @@ public class DigitClassifier extends GameBase {
 			noStroke();
 			fill(255);
 			smooth();
-//			text(digits.get(index).toString(), xpos + size * 1.4f, ypos + size * 0.5f);
+//				text(digits.get(index).toString(), xpos + size * 1.4f, ypos + size * 0.5f);
 			text("" + maxI, xpos + size * 1.4f, ypos + size * 0.5f);
 
 			noFill();
-//			stroke(right ? green : red);
-//			rect(xpos + size, ypos, size, size);
+//				stroke(right ? green : red);
+//				rect(xpos + size, ypos, size, size);
 			stroke(right ? color(0, 255, 0) : color(255, 0, 0));
 			rect(xpos, ypos, size, size);
+
 		}
 	}
 
 	@Override
-	public void mousePressed(MouseEvent e) { predict = true; }
+	public void mousePressed(MouseEvent e) { predict = true; predict(); }
 
 	@Override
 	public void keyPressed(KeyEvent e) {
@@ -150,6 +168,7 @@ public class DigitClassifier extends GameBase {
 				break;
 			case ENTER:
 				learning = !learning;
+				start = System.currentTimeMillis();
 				LogManager.debug("I am now " + (learning ? "" : "not ") + "learning!");
 				break;
 			case KeyEvent.VK_S:
@@ -157,12 +176,13 @@ public class DigitClassifier extends GameBase {
 				LogManager.info("serialized");
 				break;
 			case KeyEvent.VK_L:
-				brain = (NeuralNetwork) deserialize(bestDigitClassifier);
+				brain = (CNN) deserialize(bestDigitClassifier);
 				LogManager.info("deserialized");
 				break;
 			default:
 				break;
 		}
-		predict = true;
+//		predict = true;
+		predict();
 	}
 }

@@ -5,7 +5,7 @@ import java.util.function.Supplier;
 
 import com.sunflow.util.MathUtils;
 
-public class Population<Type extends Creature<Type>> implements MathUtils {
+public class PopulationNew<Type extends CreatureNew<Type>> implements MathUtils {
 
 	public int totalPopulation;
 	private int totalPopulationOnLoaded;
@@ -21,7 +21,7 @@ public class Population<Type extends Creature<Type>> implements MathUtils {
 	@SuppressWarnings("unused")
 	private Runnable resetR;
 
-	public Population(int totalPopulation, Supplier<Type> nC) {
+	public PopulationNew(int totalPopulation, Supplier<Type> nC) {
 		this.totalPopulation = totalPopulation;
 		this.totalPopulationOnLoaded = totalPopulation;
 		this.newCreatureS = nC;
@@ -37,7 +37,7 @@ public class Population<Type extends Creature<Type>> implements MathUtils {
 		}
 	}
 
-	public Population(int total, Supplier<Type> nC, Runnable resetR) {
+	public PopulationNew(int total, Supplier<Type> nC, Runnable resetR) {
 		this(total, nC);
 		this.resetR = resetR;
 	}
@@ -157,7 +157,7 @@ public class Population<Type extends Creature<Type>> implements MathUtils {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void populateOf(Creature<Type> creature) {
+	public void populateOf(CreatureNew<Type> creature) {
 		// Generate a new set of birds
 		ArrayList<Type> newCreatures = new ArrayList<>();
 		newCreatures.add(creature.clone());

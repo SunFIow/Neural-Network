@@ -5,14 +5,14 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
-import com.sunflow.game.Game2D;
-import com.sunflow.logging.Log;
+import com.sunflow.game.GameBase;
+import com.sunflow.logging.LogManager;
 import com.sunflow.math.SVector;
 import com.sunflow.simpleneuralnetwork.simple.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.util.Creature;
 import com.sunflow.simpleneuralnetwork.util.Population;
 
-public class SmartRockets extends Game2D {
+public class SmartRockets extends GameBase {
 	public static void main(String[] args) {
 		new SmartRockets();
 	}
@@ -39,7 +39,7 @@ public class SmartRockets extends Game2D {
 	private int cycles;
 
 	@Override
-	protected void setup() {
+	public void setup() {
 		createCanvas(1280, 800);
 		smooth();
 		frameRate(60);
@@ -129,7 +129,7 @@ public class SmartRockets extends Game2D {
 	}
 
 	@Override
-	protected void draw(Graphics2D g) {
+	public void draw(Graphics2D g) {
 		logic();
 
 		background(0);
@@ -198,11 +198,11 @@ public class SmartRockets extends Game2D {
 					break;
 				case KeyEvent.VK_S:
 					serialize(bestRocketFile, population.bestCreature().brain());
-					Log.info("serialized");
+					LogManager.info("serialized");
 					break;
 				case KeyEvent.VK_L:
 					population.populateOf(new Rocket((NeuralNetwork) deserialize(bestRocketFile)));
-					Log.info("deserialized");
+					LogManager.info("deserialized");
 					break;
 			}
 		}
@@ -234,7 +234,7 @@ public class SmartRockets extends Game2D {
 			l = 12F;
 
 //			velocity = new SVector();
-			double angle = -1 * Math.random() * Math.PI;
+			float angle = -random() * PI;
 			velocity = SVector.fromAngle(angle, null);
 		}
 

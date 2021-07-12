@@ -2,7 +2,7 @@ package com.sunflow.simpleneuralnetwork.simple;
 
 import java.io.Serializable;
 
-import com.sunflow.logging.Log;
+import com.sunflow.logging.LogManager;
 import com.sunflow.math3d.SMatrix;
 import com.sunflow.simpleneuralnetwork.util.ActivationFunction;
 import com.sunflow.util.GameUtils;
@@ -57,12 +57,12 @@ public class NeuralNetworkGeneric implements Cloneable, Serializable, GameUtils 
 	}
 
 	public double[] predict(double[] inputs_array) {
-		return convertArray(predict(convertArray(inputs_array)));
+		return convert(predict(convert(inputs_array)));
 	}
 
 	public float[] predict(float[] inputs_array) {
 		if (inputs_array.length != nodes_inputs) {
-			Log.error("NeuralNetwork#predict: input and nn_input didnt match");
+			LogManager.error("NeuralNetworkGeneric#predict: input and nn_input didn't match");
 		}
 		SMatrix inputs = SMatrix.fromArray(inputs_array);
 		SMatrix outputs = predict(inputs);
@@ -85,15 +85,15 @@ public class NeuralNetworkGeneric implements Cloneable, Serializable, GameUtils 
 	public void setActivationFunction(ActivationFunction func) { this.activation_function = func; }
 
 	public void train(double[] inputs_array, double[] target_array) {
-		train(convertArray(inputs_array), convertArray(target_array));
+		train(convert(inputs_array), convert(target_array));
 	}
 
 	public void train(float[] inputs_array, float[] target_array) {
 		if (inputs_array.length != nodes_inputs) {
-			Log.error("NeuralNetwork#train: input and nn_input didnt match");
+			LogManager.error("NeuralNetworkGeneric#train: input and nn_input didn't match");
 		}
 		if (target_array.length != nodes_outputs) {
-			Log.error("NeuralNetwork#train: target and nn_output didnt match");
+			LogManager.error("NeuralNetworkGeneric#train: target and nn_output didn't match");
 		}
 		SMatrix inputs = SMatrix.fromArray(inputs_array);
 		SMatrix targets = SMatrix.fromArray(target_array);

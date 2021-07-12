@@ -2,10 +2,10 @@ package com.sunflow.examples.supervised;
 
 import java.awt.Graphics2D;
 
-import com.sunflow.game.Game2D;
+import com.sunflow.game.GameBase;
 import com.sunflow.simpleneuralnetwork.simple.NeuralNetwork;
 
-public class Xor extends Game2D {
+public class Xor extends GameBase {
 	public static void main(String[] args) {
 		new Xor();
 	}
@@ -21,14 +21,14 @@ public class Xor extends Game2D {
 	private int iteration;
 
 	@Override
-	protected void refresh() {
+	public void refresh() {
 		brain = null;
 		training_data = null;
 		iteration = 0;
 	}
 
 	@Override
-	protected void setup() {
+	public void setup() {
 		createCanvas(400, 400);
 		smooth();
 
@@ -43,7 +43,7 @@ public class Xor extends Game2D {
 	}
 
 	@Override
-	protected void update() {
+	public void update() {
 		for (int i = 0; i < 100; i++) {
 			double[][] data = training_data[random(0, 3)];
 			brain.train(data[0], data[1]);
@@ -60,7 +60,7 @@ public class Xor extends Game2D {
 	}
 
 	@Override
-	protected void draw(Graphics2D g) {
+	public void draw(Graphics2D g) {
 		strokeWeight(10);
 		stroke(0, 255, 0);
 		fill(255, 0, 255);

@@ -3,14 +3,14 @@ package com.sunflow.examples.genetic;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
-import com.sunflow.game.Game2D;
-import com.sunflow.logging.Log;
+import com.sunflow.game.GameBase;
+import com.sunflow.logging.LogManager;
 import com.sunflow.simpleneuralnetwork.simple.NeuralNetwork;
 import com.sunflow.simpleneuralnetwork.util.Creature;
 import com.sunflow.simpleneuralnetwork.util.Population;
-import com.sunflow.util.Constants;
+import com.sunflow.util.SConstants;
 
-public class TwoThousandFortyEight extends Game2D {
+public class TwoThousandFortyEight extends GameBase {
 	public static void main(String[] args) { new TwoThousandFortyEight(); }
 
 	private static int inputs_length = 16 * 16;
@@ -52,7 +52,7 @@ public class TwoThousandFortyEight extends Game2D {
 	private boolean genNext;
 
 	@Override
-	protected void setup() {
+	public void setup() {
 		createCanvas(400, 400);
 		smooth();
 		frameRate(60);
@@ -89,7 +89,7 @@ public class TwoThousandFortyEight extends Game2D {
 			int c = 0;
 			do {
 				c++;
-				if (c > 100000) Log.error("Can't create new Value");
+				if (c > 100000) LogManager.error("Can't create new Value");
 				i = random(15);
 				x = i % size;
 				y = i / size;
@@ -126,7 +126,7 @@ public class TwoThousandFortyEight extends Game2D {
 		if (modelIndex == population.totalPopulation) {
 			if (genNext) {
 				// New Generation
-				Log.error("next Gen");
+				LogManager.error("next Gen");
 				modelIndex = 0;
 				population.setBestCreature(population.get(bestModel));
 				population.nextGeneration();
@@ -171,13 +171,13 @@ public class TwoThousandFortyEight extends Game2D {
 	}
 
 	@Override
-	protected void draw() {
+	public void draw() {
 		logic();
 		background(25);
 		fW = width / size;
 		fH = height / size;
 		// Draw everything!
-		textAlign(Constants.CENTER, Constants.CENTER);
+		textAlign(SConstants.CENTER, SConstants.CENTER);
 		textSize(32);
 
 		stroke(187, 173, 160);
@@ -201,7 +201,7 @@ public class TwoThousandFortyEight extends Game2D {
 			pair[0].show();
 		}
 
-		textAlign(Constants.LEFT, Constants.BASELINE);
+		textAlign(SConstants.LEFT, SConstants.BASELINE);
 		textSize(16);
 		fill(255, 0, 0, 100);
 		stroke(0, 0, 0, 50);
@@ -226,7 +226,7 @@ public class TwoThousandFortyEight extends Game2D {
 		if (swiping) return;
 		boolean swiped = false;
 
-		if (dir == Constants.RIGHT) {
+		if (dir == SConstants.RIGHT) {
 			// Swipe Right
 			for (int x = size - 2; x >= 0; x--) {
 				for (int y = 0; y < size; y++) {
@@ -254,7 +254,7 @@ public class TwoThousandFortyEight extends Game2D {
 					}
 				}
 			}
-		} else if (dir == Constants.LEFT) {
+		} else if (dir == SConstants.LEFT) {
 			// Swipe Left
 			for (int x = 1; x < size; x++) {
 				for (int y = 0; y < size; y++) {
@@ -282,7 +282,7 @@ public class TwoThousandFortyEight extends Game2D {
 					}
 				}
 			}
-		} else if (dir == Constants.DOWN) {
+		} else if (dir == SConstants.DOWN) {
 			// Swipe Down
 			for (int x = 0; x < size; x++) {
 				for (int y = size - 2; y >= 0; y--) {
@@ -310,7 +310,7 @@ public class TwoThousandFortyEight extends Game2D {
 					}
 				}
 			}
-		} else if (dir == Constants.UP) {
+		} else if (dir == SConstants.UP) {
 			// Swipe Up
 			for (int x = 0; x < size; x++) {
 				for (int y = 1; y < size; y++) {
@@ -401,10 +401,10 @@ public class TwoThousandFortyEight extends Game2D {
 	public void keyPressed(KeyEvent e) {
 		if (!e.isControlDown()) {
 			switch (e.getKeyCode()) {
-				case Constants.UP:
-				case Constants.LEFT:
-				case Constants.DOWN:
-				case Constants.RIGHT:
+				case SConstants.UP:
+				case SConstants.LEFT:
+				case SConstants.DOWN:
+				case SConstants.RIGHT:
 					swipe(e.getKeyCode());
 					break;
 
@@ -433,7 +433,7 @@ public class TwoThousandFortyEight extends Game2D {
 
 				case KeyEvent.VK_P:
 					genNext = !genNext;
-					Log.info("Generate infinit: " + genNext);
+					LogManager.info("Generate infinit: " + genNext);
 					break;
 
 				case KeyEvent.VK_ENTER:
@@ -452,12 +452,12 @@ public class TwoThousandFortyEight extends Game2D {
 
 				case KeyEvent.VK_S:
 					serialize(best2048File, population.bestCreature().brain());
-					Log.info("serialized");
+					LogManager.info("serialized");
 					break;
 
 				case KeyEvent.VK_L:
 					population.populateOf(new TTFEBrain((NeuralNetwork) deserialize(best2048File)));
-					Log.info("deserialized");
+					LogManager.info("deserialized");
 					break;
 			}
 		}
@@ -552,16 +552,16 @@ public class TwoThousandFortyEight extends Game2D {
 
 			switch (highest) {
 				case 0:
-					swipe(Constants.UP);
+					swipe(SConstants.UP);
 					break;
 				case 1:
-					swipe(Constants.LEFT);
+					swipe(SConstants.LEFT);
 					break;
 				case 2:
-					swipe(Constants.RIGHT);
+					swipe(SConstants.RIGHT);
 					break;
 				case 3:
-					swipe(Constants.DOWN);
+					swipe(SConstants.DOWN);
 					break;
 			}
 		}
@@ -661,19 +661,19 @@ public class TwoThousandFortyEight extends Game2D {
 		public void update() {
 			boolean finished = false;
 			switch (swipeDir) {
-				case Constants.LEFT:
+				case SConstants.LEFT:
 					sx -= speed;
 					finished = x() <= swipingTo.x - speed / 2;
 					break;
-				case Constants.RIGHT:
+				case SConstants.RIGHT:
 					sx += speed;
 					finished = x() >= swipingTo.x + speed / 2;
 					break;
-				case Constants.UP:
+				case SConstants.UP:
 					sy -= speed;
 					finished = y() <= swipingTo.y - speed / 2;
 					break;
-				case Constants.DOWN:
+				case SConstants.DOWN:
 					sy += speed;
 					finished = y() >= swipingTo.y + speed / 2;
 					break;
