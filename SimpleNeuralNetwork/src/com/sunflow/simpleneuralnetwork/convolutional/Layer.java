@@ -17,9 +17,9 @@ public abstract class Layer implements Cloneable, Serializable {
 
 	private Layer(Option options) {
 		this.options = options;
-		this.weights = new SMatrix(options.output(), options.input());
-		this.bias = new SMatrix(options.output(), 1);
-		this.name = getDesc() + options.index();
+		this.weights = new SMatrix(options.getOutput(), options.getInput());
+		this.bias = new SMatrix(options.getOutput(), 1);
+		this.name = getDesc() + options.getIndex();
 	}
 
 	public Layer(Layer root) {
@@ -50,9 +50,9 @@ public abstract class Layer implements Cloneable, Serializable {
 		this.bias.map(func);
 	}
 
-	public void setLearningRate(float amt) { this.options.learning_rate(amt); }
+	public void setLearningRate(float amt) { this.options.setLearning_rate(amt); }
 
-	public void setActivationFunction(ActivationFunction func) { this.options.activation_function(func); }
+	public void setActivationFunction(ActivationFunction func) { this.options.setActivation_function(func); }
 
 	protected abstract SMatrix genLayer(SMatrix inputs);
 
@@ -71,53 +71,33 @@ public abstract class Layer implements Cloneable, Serializable {
 		public Option() {}
 
 		public Option(Option root) {
-			index(root.index);
-			learning_rate(root.learning_rate);
-			activation_function(root.activation_function);
-			input(root.input_num);
-			output(root.output_num);
+			setIndex(root.index);
+			setLearning_rate(root.learning_rate);
+			setActivation_function(root.activation_function);
+			setInput(root.input_num);
+			setOutput(root.output_num);
 		}
 
 		@Override
 		protected Option clone() { return new Option(this); }
 
-		public Option index(int val) { return setIndex(val); }
-
 		public Option setIndex(int index) { this.index = index; return this; }
-
-		public Option learning_rate(float amt) { return setLearning_rate(amt); }
 
 		public Option setLearning_rate(float learning_rate) { this.learning_rate = learning_rate; return this; }
 
-		public Option activation_function(ActivationFunction activation_function) { return setActivation_function(activation_function); }
-
 		public Option setActivation_function(ActivationFunction activation_function) { this.activation_function = activation_function; return this; }
-
-		public Option input(int num) { return setInput(num); }
 
 		public Option setInput(int num) { this.input_num = num; return this; }
 
-		public Option output(int num) { return setOutput(num); }
-
 		public Option setOutput(int num) { this.output_num = num; return this; }
-
-		public int index() { return getIndex(); }
 
 		public int getIndex() { return index; }
 
-		public float learning_rate() { return getLearning_rate(); }
-
 		public float getLearning_rate() { return learning_rate; }
-
-		public ActivationFunction activation_function() { return getActivation_function(); }
 
 		public ActivationFunction getActivation_function() { return activation_function; }
 
-		public int input() { return getInput(); }
-
 		public int getInput() { return input_num; }
-
-		public int output() { return getOutput(); }
 
 		public int getOutput() { return output_num; }
 	}
@@ -125,47 +105,45 @@ public abstract class Layer implements Cloneable, Serializable {
 	public static abstract class ImageOption extends Layer.Option {
 		private static final long serialVersionUID = 171466182717288300L;
 
-		private int width, height, depth;
+		private int width, height, channels;
+		private int count;
 
 		public ImageOption() {}
 
-		public ImageOption(ImageOption root) { super(root); }
+		public ImageOption(ImageOption root) { super(root); setInput(root.width, root.height, root.channels, root.count); }
 
-		public ImageOption input(int width, int height, int depth) { return setInput(width, height, depth); }
-
-		public ImageOption setInput(int width, int height, int depth) {
-			this.width = width;
-			this.height = height;
-			this.depth = depth;
-			input(width * height * depth);
+		public ImageOption setInput(int width, int height, int channels, int count) {
+			setWidth(width);
+			setHeight(height);
+			setChannels(channels);
+			setCount(count);
+			setInput(width * height * channels * count);
 			return this;
 		}
 
-		public abstract int calcOutput();
+		private void setWidth(int width) { this.width = width; }
 
-		public int width() { return getWidth(); }
+		private void setHeight(int height) { this.height = height; }
+
+		private void setChannels(int channels) { this.channels = channels; }
+
+		private void setCount(int count) { this.count = count; }
 
 		public int getWidth() { return width; }
 
-		public int height() { return getHeight(); }
-
 		public int getHeight() { return height; }
 
-		public int depth() { return getDepth(); }
+		public int getChannels() { return channels; }
 
-		public int getDepth() { return depth; }
-
-		public int outputWidth() { return getOutputWidth(); }
+		public int getCount() { return count; }
 
 		public abstract int getOutputWidth();
 
-		public int outputHeight() { return getOutputHeight(); }
-
 		public abstract int getOutputHeight();
 
-		public int outputDepth() { return getOutputDepth(); }
+		public abstract int getOutputChannels();
 
-		public int getOutputDepth() { return getDepth(); }
+		public abstract int getOutputCount();
 	}
 
 	public static class Conv2D extends Layer {
@@ -185,7 +163,10 @@ public abstract class Layer implements Cloneable, Serializable {
 		protected Option getOptions() { return (Option) super.getOptions(); }
 
 		@Override
-		protected SMatrix genLayer(SMatrix inputs) { throw new UnsupportedOperationException(); }
+		protected SMatrix genLayer(SMatrix inputs) {
+
+			throw new UnsupportedOperationException();
+		}
 
 		@Override
 		protected void adjustLayer(SMatrix errors, SMatrix outputs, SMatrix inputs) { throw new UnsupportedOperationException(); }
@@ -202,22 +183,9 @@ public abstract class Layer implements Cloneable, Serializable {
 			@Override
 			protected Option clone() { return new Option(this); }
 
-			@Override
-			public int calcOutput() { return this.output_num = outputWidth() * outputHeight() * outputDepth() * filterNum(); }
-
-			public Option filterNum(int num) { return setFilterNum(num); }
-
-			public Option setFilterNum(int num) { this.filter_num = num; return this; }
-
-			public Option filterSize(int size) { return setFilterSize(size); }
-
-			public Option setFilterSize(int size) { this.filter_size = size; return this; }
-
-			public int filterNum() { return getFilterNum(); }
+			public Option setFilter(int size, int num) { this.filter_size = size; this.filter_num = num; return this; }
 
 			public int getFilterNum() { return filter_num; }
-
-			public int filterSize() { return getFilterSize(); }
 
 			public int getFilterSize() { return filter_size; }
 
@@ -228,7 +196,13 @@ public abstract class Layer implements Cloneable, Serializable {
 			public int getOutputHeight() { return getHeight() - (getFilterSize() / 2 - 1); }
 
 			@Override
-			public int getOutput() { return getOutputWidth() * getOutputHeight() * getDepth() * getFilterNum(); }
+			public int getOutputChannels() { return getChannels(); }
+
+			@Override
+			public int getOutputCount() { return getCount() * getFilterNum(); }
+
+			@Override
+			public int getOutput() { return getOutputWidth() * getOutputHeight() * getOutputChannels() * getOutputCount(); }
 		}
 	}
 
@@ -265,12 +239,12 @@ public abstract class Layer implements Cloneable, Serializable {
 			int widthIn = getOptions().getWidth();
 			int widthOut = getOptions().getOutputWidth();
 			int heightOut = getOptions().getOutputHeight();
-			int depthOut = getOptions().getOutputDepth();
+			int channelsOut = getOptions().getOutputChannels();
 			int size = getOptions().getSize();
 			int stride = getOptions().getStride();
 
 			float[][] data = inputs.data();
-			float[][] dataOut = new float[widthOut * heightOut][depthOut];
+			float[][] dataOut = new float[widthOut * heightOut][channelsOut];
 			for (int y = 0; y < heightOut; y++) for (int x = 0; x < widthOut; x++) {
 				int indexOut = x + y * widthOut;
 //				for (int d = 0; d < depthOut; d++) {
@@ -282,10 +256,10 @@ public abstract class Layer implements Cloneable, Serializable {
 //					}
 //					dataOut[indexOut][d] = max;
 //				}
-				float[] max = new float[depthOut];
+				float[] max = new float[channelsOut];
 				for (int sy = 0; sy < size; sy++) for (int sx = 0; sx < size; sx++) {
 					int indexIn = (x * stride + sx) + (y * stride + sy) * widthIn;
-					for (int d = 0; d < depthOut; d++) {
+					for (int d = 0; d < channelsOut; d++) {
 						float current = data[indexIn][d];
 						if (current > max[d]) max[d] = current;
 					}
@@ -313,9 +287,6 @@ public abstract class Layer implements Cloneable, Serializable {
 			@Override
 			protected Option clone() { return new Option(this); }
 
-			@Override
-			public int calcOutput() { return this.output_num = outputWidth() * outputHeight() * outputDepth() * input(); }
-
 			public Option size(int size) { return setSize(size); }
 
 			public Option setSize(int size) { this.size = size; return this; }
@@ -339,7 +310,13 @@ public abstract class Layer implements Cloneable, Serializable {
 			public int getOutputHeight() { return getHeight() / stride; }
 
 			@Override
-			public int getOutput() { return getOutputWidth() * getOutputHeight() * getDepth(); }
+			public int getOutputChannels() { return getChannels(); }
+
+			@Override
+			public int getOutputCount() { return getCount(); }
+
+			@Override
+			public int getOutput() { return getOutputWidth() * getOutputHeight() * getOutputChannels() * getOutputCount(); }
 		}
 	}
 
@@ -363,12 +340,12 @@ public abstract class Layer implements Cloneable, Serializable {
 		protected SMatrix genLayer(SMatrix inputs) {
 			int widthIn = getOptions().getWidth();
 			int heightIn = getOptions().getHeight();
-			int depthIn = getOptions().getDepth();
+			int channelsIn = getOptions().getChannels();
 
 			float[][] data = inputs.data();
 			float[][] dataOut = new float[getOptions().getOutput()][1];
 			int index = 0;
-			for (int y = 0; y < heightIn; y++) for (int x = 0; x < widthIn; x++) for (int d = 0; d < depthIn; d++) {
+			for (int y = 0; y < heightIn; y++) for (int x = 0; x < widthIn; x++) for (int d = 0; d < channelsIn; d++) {
 				dataOut[index++][0] = data[x + y * widthIn][d];
 			}
 			SMatrix output = new SMatrix(dataOut);
@@ -389,17 +366,19 @@ public abstract class Layer implements Cloneable, Serializable {
 			protected Option clone() { return new Option(this); }
 
 			@Override
-			public int calcOutput() { return this.output_num = outputWidth() * outputHeight() * outputDepth(); }
+			public int getOutputWidth() { return 0; }
 
 			@Override
-			public int getOutputWidth() { return getOutput(); }
+			public int getOutputHeight() { return 0; }
 
 			@Override
-			public int getOutputHeight() { return 1; }
+			public int getOutputChannels() { return 0; }
 
 			@Override
-			public int getOutputDepth() { return 1; }
+			public int getOutputCount() { return 0; }
 
+			@Override
+			public int getOutput() { return getWidth() * getHeight() * getChannels() * getCount(); }
 		}
 	}
 
@@ -425,16 +404,16 @@ public abstract class Layer implements Cloneable, Serializable {
 			SMatrix outputs = SMatrix.dot(weights, inputs);
 			outputs.add(bias);
 			// Activation function
-			outputs.map(options.activation_function().func);
+			outputs.map(options.getActivation_function().func);
 			return outputs;
 		}
 
 		@Override
 		protected void adjustLayer(SMatrix errors, SMatrix outputs, SMatrix inputs) {
 			// Calculate gradients
-			SMatrix gradients = SMatrix.map(outputs, options.activation_function().dfunc);
+			SMatrix gradients = SMatrix.map(outputs, options.getActivation_function().dfunc);
 			gradients.multiply(errors);
-			gradients.multiply(options.learning_rate());
+			gradients.multiply(options.getLearning_rate());
 
 			// Calculate deltas
 			SMatrix layer_p_t = SMatrix.transpose(inputs);

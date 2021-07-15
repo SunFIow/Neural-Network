@@ -7,7 +7,8 @@ import com.sunflow.simpleneuralnetwork.simple.NeuralNetwork;
 
 public class Xor extends GameBase {
 	public static void main(String[] args) {
-		new Xor();
+		settings.autostart(false);
+		new Xor().start();
 	}
 
 	private NeuralNetwork brain;
@@ -45,7 +46,7 @@ public class Xor extends GameBase {
 	@Override
 	public void update() {
 		for (int i = 0; i < 100; i++) {
-			double[][] data = training_data[random(0, 3)];
+			double[][] data = training_data[random(0, 4)];
 			brain.train(data[0], data[1]);
 			iteration++;
 		}
@@ -84,10 +85,10 @@ public class Xor extends GameBase {
 			}
 		}
 
-		fill(255);
+		fill(255, 0, 0);
 		stroke(0, 0, 0, 150);
 		strokeWeight(10);
-		textSize(16);
+		textSize(20);
 		text(iterationS, width / 2 - 75, height / 2 - 50);
 		text(predict00, width / 2 - 75, height / 2 - 30);
 		text(predict01, width / 2 - 75, height / 2 - 10);

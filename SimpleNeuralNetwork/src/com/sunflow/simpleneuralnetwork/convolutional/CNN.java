@@ -66,73 +66,65 @@ public class CNN implements Cloneable, Serializable { // TODO: make inputs and t
 	private void initRegression() {
 		int nodes_hidden = 16 * nodes_outputs;
 		Layer.Dense dense1 = new Layer.Dense(new Layer.Dense.Option()
-				.index(1)
-				.activation_function(options.activation_function())
-				.learning_rate(options.learning_rate())
-				.input(nodes_inputs)
-				.output(nodes_hidden));
+				.setIndex(1)
+				.setActivation_function(options.activation_function())
+				.setLearning_rate(options.learning_rate())
+				.setInput(nodes_inputs)
+				.setOutput(nodes_hidden));
 		Layer.Dense dense2 = new Layer.Dense(new Layer.Dense.Option()
-				.index(2)
-				.activation_function(options.activation_function())
-				.learning_rate(options.learning_rate())
-				.input(nodes_hidden)
-				.output(nodes_outputs));
+				.setIndex(2)
+				.setActivation_function(options.activation_function())
+				.setLearning_rate(options.learning_rate())
+				.setInput(nodes_hidden)
+				.setOutput(nodes_outputs));
 		layers.add(dense1);
 		layers.add(dense2);
 	}
 
 	private void initImageClassification() {
 		Layer.Conv2D.Option opConv2D1 = new Layer.Conv2D.Option();
-		opConv2D1.index(1);
-		opConv2D1.activation_function(options.activation_function());
-		opConv2D1.learning_rate(options.learning_rate());
-		opConv2D1.input(64, 64, 4);
-		opConv2D1.filterSize(5);
-		opConv2D1.filterNum(8);
-		opConv2D1.calcOutput();
+		opConv2D1.setIndex(1);
+		opConv2D1.setActivation_function(options.activation_function());
+		opConv2D1.setLearning_rate(options.learning_rate());
+		opConv2D1.setInput(64, 64, 4, 1);
+		opConv2D1.setFilter(5, 8);
 
 		Layer.MaxPooling2D.Option opMaxPooling2D1 = new Layer.MaxPooling2D.Option();
-		opMaxPooling2D1.index(2);
-		opMaxPooling2D1.activation_function(options.activation_function());
-		opMaxPooling2D1.learning_rate(options.learning_rate());
+		opMaxPooling2D1.setIndex(2);
+		opMaxPooling2D1.setActivation_function(options.activation_function());
+		opMaxPooling2D1.setLearning_rate(options.learning_rate());
 		opMaxPooling2D1.size(2);
 		opMaxPooling2D1.stride(2);
-		opMaxPooling2D1.input(opConv2D1.filterNum());
-		opMaxPooling2D1.input(opConv2D1.outputWidth(), opConv2D1.outputHeight(), opConv2D1.outputDepth());
-		opMaxPooling2D1.calcOutput();
+		opMaxPooling2D1.setInput(opConv2D1.getOutputWidth(), opConv2D1.getOutputHeight(), opConv2D1.getOutputChannels(), opConv2D1.getOutputCount());
 
 		Layer.Conv2D.Option opConv2D2 = new Layer.Conv2D.Option();
-		opConv2D2.index(3);
-		opConv2D2.activation_function(options.activation_function());
-		opConv2D2.learning_rate(options.learning_rate());
-		opConv2D2.input(opMaxPooling2D1.outputWidth(), opMaxPooling2D1.outputHeight(), opMaxPooling2D1.outputDepth());
-		opConv2D2.filterSize(5);
-		opConv2D2.filterNum(2);
-		opConv2D2.calcOutput();
+		opConv2D2.setIndex(3);
+		opConv2D2.setActivation_function(options.activation_function());
+		opConv2D2.setLearning_rate(options.learning_rate());
+		opConv2D2.setInput(opMaxPooling2D1.getOutputWidth(), opMaxPooling2D1.getOutputHeight(), opMaxPooling2D1.getOutputChannels(), opMaxPooling2D1.getOutputCount());
+		opConv2D2.setFilter(5, 2);
 
 		Layer.MaxPooling2D.Option opMaxPooling2D2 = new Layer.MaxPooling2D.Option();
-		opMaxPooling2D2.index(4);
-		opMaxPooling2D2.activation_function(options.activation_function());
-		opMaxPooling2D2.learning_rate(options.learning_rate());
+		opMaxPooling2D2.setIndex(4);
+		opMaxPooling2D2.setActivation_function(options.activation_function());
+		opMaxPooling2D2.setLearning_rate(options.learning_rate());
 		opMaxPooling2D2.size(2);
 		opMaxPooling2D2.stride(2);
-		opMaxPooling2D2.input(opConv2D2.filterNum());
-		opMaxPooling2D2.input(opConv2D2.outputWidth(), opConv2D2.outputHeight(), opConv2D2.outputDepth());
-		opMaxPooling2D2.calcOutput();
+		opMaxPooling2D2.setInput(opConv2D2.getOutputWidth(), opConv2D2.getOutputHeight(), opConv2D2.getOutputChannels(), opConv2D2.getOutputCount());
 
 		Layer.Flatten.Option opFlatten1 = new Layer.Flatten.Option();
-		opFlatten1.index(5);
-		opFlatten1.activation_function(options.activation_function());
-		opFlatten1.learning_rate(options.learning_rate());
-		opFlatten1.input(opMaxPooling2D2.outputWidth(), opMaxPooling2D2.outputHeight(), opMaxPooling2D2.outputDepth());
-		opFlatten1.output(opMaxPooling2D2.output());
+		opFlatten1.setIndex(5);
+		opFlatten1.setActivation_function(options.activation_function());
+		opFlatten1.setLearning_rate(options.learning_rate());
+		opFlatten1.setInput(opMaxPooling2D2.getOutputWidth(), opMaxPooling2D2.getOutputHeight(), opMaxPooling2D2.getOutputChannels(), opMaxPooling2D2.getOutputCount());
+		opFlatten1.setOutput(opMaxPooling2D2.getOutput());
 
 		Layer.Dense.Option opDense1 = new Layer.Dense.Option();
-		opDense1.index(6);
-		opDense1.activation_function(options.activation_function());
-		opDense1.learning_rate(options.learning_rate());
-		opDense1.input(opFlatten1.output());
-		opDense1.output(nodes_outputs);
+		opDense1.setIndex(6);
+		opDense1.setActivation_function(options.activation_function());
+		opDense1.setLearning_rate(options.learning_rate());
+		opDense1.setInput(opFlatten1.getOutput());
+		opDense1.setOutput(nodes_outputs);
 
 		Layer.Conv2D conv2D1 = new Layer.Conv2D(opConv2D1);
 		Layer.MaxPooling2D maxPooling2D1 = new Layer.MaxPooling2D(opMaxPooling2D1);

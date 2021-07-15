@@ -72,8 +72,10 @@ public class NeuralNetwork implements Cloneable, Serializable, GameUtils {
 
 	public SMatrix predict(SMatrix inputs) {
 		// Generating the hidden outputs
+		System.out.println("genHidden");
 		SMatrix hidden = genLayer(weights_ih, inputs, bias_h);
 		// Generating the real outputs
+		System.out.println("genOutputs");
 		SMatrix outputs = genLayer(weights_ho, hidden, bias_o);
 		// Sending back to the caller!
 		return outputs;
@@ -122,6 +124,12 @@ public class NeuralNetwork implements Cloneable, Serializable, GameUtils {
 	private SMatrix genLayer(SMatrix weights, SMatrix inputs, SMatrix bias) {
 		// Generating the layer output
 		SMatrix outputs = SMatrix.dot(weights, inputs);
+
+		System.out.println("-----------");
+		System.out.println(weights);
+		System.out.println(inputs);
+		System.out.println(outputs);
+
 		outputs.add(bias);
 		// Activation function
 		outputs.map(activation_function.func);
