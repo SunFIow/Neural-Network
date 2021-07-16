@@ -224,9 +224,8 @@ public class CNN implements Cloneable, Serializable { // TODO: make inputs and t
 
 	private SMatrix predict(SMatrix inputs) {
 		SMatrix[] outputs = new SMatrix[layers.size()];
-		for (int i = 0; i < layers.size(); i++) {
-			outputs[i] = layers.get(i).genLayer(i == 0 ? inputs : outputs[i - 1]);
-		}
+		outputs[0] = layers.get(0).genLayer(inputs);
+		for (int i = 1; i < layers.size(); i++) outputs[i] = layers.get(i).genLayer(outputs[i - 1]);
 		return outputs[outputs.length - 1];
 	}
 
@@ -253,7 +252,7 @@ public class CNN implements Cloneable, Serializable { // TODO: make inputs and t
 		layers.get(ls_1).adjustLayer(errors[ls_1], outputs[ls_1], ls_1 == 0 ? inputs : outputs[ls_1 - 1]);
 		for (int i = outputs.length - 2; i >= 1; i--) {
 			errors[i] = SMatrix.dot(layers.get(i + 1).getTransposedWeights(), errors[i + 1]);
-			layers.get(i).adjustLayer(errors[i], outputs[i], inputs);
+			layers.get(i).adjustLayer(errors[i], outputs[i], outputs[i - 1]);
 		}
 		errors[0] = SMatrix.dot(layers.get(1).getTransposedWeights(), errors[1]);
 		layers.get(0).adjustLayer(errors[0], outputs[0], inputs);

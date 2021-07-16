@@ -17,8 +17,8 @@ public abstract class Layer implements Cloneable, Serializable {
 
 	private Layer(Option options) {
 		this.options = options;
-		this.weights = new SMatrix(options.getOutput(), options.getInput());
-		this.bias = new SMatrix(options.getOutput(), 1);
+		this.weights = new SMatrix(options.getWeightsRows(), options.getWeightsCols());
+		this.bias = new SMatrix(options.getBiasRows(), options.getBiasCols());
 		this.name = getDesc() + options.getIndex();
 	}
 
@@ -100,6 +100,14 @@ public abstract class Layer implements Cloneable, Serializable {
 		public int getInput() { return input_num; }
 
 		public int getOutput() { return output_num; }
+
+		public int getWeightsRows() { return getOutput(); }
+
+		public int getWeightsCols() { return getInput(); }
+
+		public int getBiasRows() { return getWeightsRows(); }
+
+		public int getBiasCols() { return 1; }
 	}
 
 	public static abstract class ImageOption extends Layer.Option {
@@ -164,12 +172,45 @@ public abstract class Layer implements Cloneable, Serializable {
 
 		@Override
 		protected SMatrix genLayer(SMatrix inputs) {
+			final int widthIn = getOptions().getWidth();
+			final int heightIn = getOptions().getHeight();
+			final int channelsIn = getOptions().getChannels();
+			final int countIn = getOptions().getCount();
+			final int widthOut = getOptions().getOutputWidth();
+			final int heightOut = getOptions().getOutputHeight();
+			final int channelsOut = getOptions().getOutputChannels();
+			final int countOut = getOptions().getOutputCount();
+			final int filterNum = getOptions().getFilterNum();
+			final int filterSize = getOptions().getFilterSize();
+			final int stride = 1;
 
-			throw new UnsupportedOperationException();
+			final float[][] FILTERS = weights.data();
+			final float[][] dataIn = inputs.data();
+			final float[][] dataOut = new float[widthOut * heightOut * channelsOut][countOut];
+
+			for (int y = 0; y < heightIn - filterSize; y += stride) for (int x = 0; x < widthIn - filterSize; x += stride) {
+				for (int c = 0; c < countIn; c++) for (int f = 0; f < filterNum; f++) for (int ch = 0; ch < channelsIn; ch++) {
+					float[] filter = FILTERS[c * channelsIn * filterNum + f * channelsIn + ch];
+					float acc[] = new float[countOut];
+					for (int fy = 0; fy < filterSize; fy++) for (int fx = 0; fx < filterSize; fx++) {
+						int indexIn = (x + fx) + (y + fy) * widthIn + ch;
+						float factor = filter[fx + fy * filterSize];
+						float current = dataIn[indexIn][c];
+						acc[c * filterNum + f] += current * factor;
+					}
+					int indexOut = x + y * widthIn + ch;
+					dataOut[indexOut] = acc;
+				}
+			}
+
+			SMatrix output = new SMatrix(dataOut);
+			return output;
 		}
 
 		@Override
-		protected void adjustLayer(SMatrix errors, SMatrix outputs, SMatrix inputs) { throw new UnsupportedOperationException(); }
+		protected void adjustLayer(SMatrix errors, SMatrix outputs, SMatrix inputs) {
+//			throw new UnsupportedOperationException();
+		}
 
 		public static class Option extends ImageOption {
 			private static final long serialVersionUID = -709751690049589038L;
@@ -190,10 +231,10 @@ public abstract class Layer implements Cloneable, Serializable {
 			public int getFilterSize() { return filter_size; }
 
 			@Override
-			public int getOutputWidth() { return getWidth() - (getFilterSize() / 2 - 1); }
+			public int getOutputWidth() { return getWidth() - (getFilterSize() - 1); }
 
 			@Override
-			public int getOutputHeight() { return getHeight() - (getFilterSize() / 2 - 1); }
+			public int getOutputHeight() { return getHeight() - (getFilterSize() - 1); }
 
 			@Override
 			public int getOutputChannels() { return getChannels(); }
@@ -203,6 +244,15 @@ public abstract class Layer implements Cloneable, Serializable {
 
 			@Override
 			public int getOutput() { return getOutputWidth() * getOutputHeight() * getOutputChannels() * getOutputCount(); }
+
+			@Override
+			public int getWeightsRows() { return getCount() * getChannels() * getFilterNum(); }
+
+			@Override
+			public int getWeightsCols() { return getFilterSize() * getFilterSize(); }
+
+			@Override
+			public int getBiasCols() { return getWeightsCols(); }
 		}
 	}
 
@@ -236,35 +286,31 @@ public abstract class Layer implements Cloneable, Serializable {
 
 		@Override
 		protected SMatrix genLayer(SMatrix inputs) {
-			int widthIn = getOptions().getWidth();
-			int widthOut = getOptions().getOutputWidth();
-			int heightOut = getOptions().getOutputHeight();
-			int channelsOut = getOptions().getOutputChannels();
-			int size = getOptions().getSize();
-			int stride = getOptions().getStride();
+			final int widthIn = getOptions().getWidth();
+			final int channelsIn = getOptions().getChannels();
+			final int countIn = getOptions().getCount();
+			final int widthOut = getOptions().getOutputWidth();
+			final int heightOut = getOptions().getOutputHeight();
+			final int channelsOut = getOptions().getOutputChannels();
+			final int countOut = getOptions().getOutputCount();
+			final int size = getOptions().getSize();
+			final int stride = getOptions().getStride();
 
-			float[][] data = inputs.data();
-			float[][] dataOut = new float[widthOut * heightOut][channelsOut];
+			final float[][] dataIn = inputs.data();
+			final float[][] dataOut = new float[widthOut * heightOut * channelsOut][countOut];
 			for (int y = 0; y < heightOut; y++) for (int x = 0; x < widthOut; x++) {
-				int indexOut = x + y * widthOut;
-//				for (int d = 0; d < depthOut; d++) {
-//					float max = 0;
-//					for (int sy = 0; sy < size; sy++) for (int sx = 0; sx < size; sx++) {
-//						int indexIn = (x * stride + sx) + (y * stride + sy) * widthIn;
-//						float current = data[indexIn][d];
-//						if (current > max) max = current;
-//					}
-//					dataOut[indexOut][d] = max;
-//				}
-				float[] max = new float[channelsOut];
-				for (int sy = 0; sy < size; sy++) for (int sx = 0; sx < size; sx++) {
-					int indexIn = (x * stride + sx) + (y * stride + sy) * widthIn;
-					for (int d = 0; d < channelsOut; d++) {
-						float current = data[indexIn][d];
-						if (current > max[d]) max[d] = current;
+				for (int c = 0; c < channelsIn; c++) {
+					float[] max = new float[countIn];
+					for (int sy = 0; sy < size; sy++) for (int sx = 0; sx < size; sx++) {
+						int indexIn = (x * stride + sx) + (y * stride + sy) * widthIn + c;
+						for (int d = 0; d < countIn; d++) {
+							float current = dataIn[indexIn][d];
+							if (current > max[d]) max[d] = current;
+						}
 					}
+					int indexOut = x + y * widthOut + c;
+					dataOut[indexOut] = max;
 				}
-				dataOut[indexOut] = max;
 			}
 
 			SMatrix output = new SMatrix(dataOut);
